@@ -1,6 +1,6 @@
-module koroche/main
+module koroche
 
-go 1.25.4
+go 1.25.6
 
 require github.com/gin-gonic/gin v1.11.0
 
