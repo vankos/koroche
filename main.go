@@ -1,32 +1,40 @@
 package main
 
 import (
+	"koroche/shortUrlGenerator"
 	"net/http"
 	"net/url"
 
 	"github.com/gin-gonic/gin"
 )
 
+const host = "localhost:8080"
+const shortUrlSize = 12
+
 var urlsMap map[string]string = make(map[string]string)
 
 func main() {
 	router := gin.Default()
-	router.POST("/create", createShortLink)
-	router.GET("/get", expendShortLink)
-	router.Run("localhost:8080")
+	router.POST("/create", processCreate)
+	router.GET("/get", processGet)
+	router.Run(host)
 }
 
-func createShortLink(ginContext *gin.Context) {
+func processCreate(ginContext *gin.Context) {
 	urlToShorten := ginContext.GetString("url")
 	isUrl := validateUrl(urlToShorten)
 	if isUrl {
 		shortUrl := generateShortUrl(urlToShorten)
+		ginContext.String(http.StatusOK, shortUrl)
 	}
-	ginContext.String(http.StatusOK)
+
+	ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
 }
 
 func generateShortUrl(urlToShorten string) string {
-	"localhost:8080/" + ""
+	shortUrl := shortUrlGenerator.GenerateShortUrl(host, shortUrlSize)
+	urlsMap[urlToShorten] = shortUrl
+	return shortUrl
 }
 
 func validateUrl(urlToShorten string) bool {
@@ -38,6 +46,6 @@ func validateUrl(urlToShorten string) bool {
 	return true
 }
 
-func expendShortLink(ginContext *gin.Context) {
+func processGet(ginContext *gin.Context) {
 
 }
