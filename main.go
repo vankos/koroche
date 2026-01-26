@@ -11,7 +11,8 @@ import (
 const host = "localhost:8080"
 const shortUrlSize = 12
 
-var urlsMap map[string]string = make(map[string]string)
+var realToShortMap map[string]string = make(map[string]string)
+var shortToRealMap map[string]string = make(map[string]string)
 
 func main() {
 	router := gin.Default()
@@ -33,7 +34,8 @@ func processCreate(ginContext *gin.Context) {
 
 func generateShortUrl(urlToShorten string) string {
 	shortUrl := shortUrlGenerator.GenerateShortUrl(host, shortUrlSize)
-	urlsMap[urlToShorten] = shortUrl
+	realToShortMap[urlToShorten] = shortUrl
+	shortToRealMap[shortUrl] = urlToShorten
 	return shortUrl
 }
 
@@ -47,5 +49,17 @@ func validateUrl(urlToShorten string) bool {
 }
 
 func processGet(ginContext *gin.Context) {
+	urlToExpand := ginContext.GetString("url")
+	isUrl := validateUrl(urlToExpand)
+	if isUrl {
+		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
+	}
 
+	realUrl, ok := shortToRealMap[urlToExpand]
+	if !ok {
+		ginContext.AbortWithStatus(http.StatusNotFound)
+	}
+
+	ginContext.String(http.StatusOK, realUrl)
 }
