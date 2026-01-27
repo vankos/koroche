@@ -40,7 +40,7 @@ func generateShortUrl(urlToShorten string) string {
 }
 
 func validateUrl(urlToShorten string) bool {
-	_, err := url.Parse(urlToShorten)
+	_, err := url.ParseRequestURI(urlToShorten)
 	if err != nil {
 		return false
 	}
