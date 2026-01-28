@@ -50,9 +50,9 @@ func validateUrl(urlToShorten string) bool {
 }
 
 func processGet(ginContext *gin.Context) {
-	urlToExpand := ginContext.GetString("url")
+	urlToExpand := ginContext.Query("url")
 	isUrl := validateUrl(urlToExpand)
-	if isUrl {
+	if !isUrl {
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
 		return
 	}
@@ -60,6 +60,7 @@ func processGet(ginContext *gin.Context) {
 	realUrl, ok := shortToRealMap[urlToExpand]
 	if !ok {
 		ginContext.AbortWithStatus(http.StatusNotFound)
+		return
 	}
 
 	ginContext.String(http.StatusOK, realUrl)
