@@ -22,7 +22,7 @@ func main() {
 }
 
 func processCreate(ginContext *gin.Context) {
-	urlToShorten := ginContext.GetString("url")
+	urlToShorten := ginContext.Query("url")
 	isUrl := validateUrl(urlToShorten)
 	if isUrl {
 		shortUrl := generateShortUrl(urlToShorten)
