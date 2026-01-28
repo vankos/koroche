@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const host = "localhost:8080"
+const serverUrl = "http://localhost:8080"
 const shortUrlSize = 12
 
 var realToShortMap map[string]string = make(map[string]string)
@@ -18,7 +18,8 @@ func main() {
 	router := gin.Default()
 	router.POST("/create", processCreate)
 	router.GET("/get", processGet)
-	router.Run(host)
+	parsedServerUrl, _ := url.ParseRequestURI(serverUrl)
+	router.Run(parsedServerUrl.Host)
 }
 
 func processCreate(ginContext *gin.Context) {
@@ -33,7 +34,7 @@ func processCreate(ginContext *gin.Context) {
 }
 
 func generateShortUrl(urlToShorten string) string {
-	shortUrl := shortUrlGenerator.GenerateShortUrl(host, shortUrlSize)
+	shortUrl := shortUrlGenerator.GenerateShortUrl(serverUrl, shortUrlSize)
 	realToShortMap[urlToShorten] = shortUrl
 	shortToRealMap[shortUrl] = urlToShorten
 	return shortUrl

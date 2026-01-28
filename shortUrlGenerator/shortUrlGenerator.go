@@ -3,11 +3,12 @@ package shortUrlGenerator
 import (
 	"crypto/rand"
 	"math/big"
+	"net/url"
 )
 
 const base62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-func GenerateShortUrl(host string, urlSize int) string {
+func GenerateShortUrl(serverUrl string, urlSize int) string {
 
 	var randomPart string = ""
 	for range urlSize {
@@ -16,6 +17,7 @@ func GenerateShortUrl(host string, urlSize int) string {
 		randomPart += string(randBase62Char)
 	}
 
-	shortUrl := host
-	return shortUrl
+	hostUrl, _ := url.Parse(serverUrl)
+	shortUrl := hostUrl.JoinPath(randomPart)
+	return shortUrl.String()
 }
