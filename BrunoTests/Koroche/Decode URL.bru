@@ -1,0 +1,20 @@
+meta {
+  name: Decode URL
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host}}/get?url={{shortUrl}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  url: {{shortUrl}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
