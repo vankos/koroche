@@ -33,7 +33,7 @@ func processCreate(ginContext *gin.Context) {
 }
 
 func generateShortUrl(urlToShorten string) string {
-	shortUrl := shortUrlGenerator.GenerateShortUrl(serverUrl, shortUrlSize)
+	shortUrl := GenerateShortUrl(serverUrl, shortUrlSize)
 	realToShortMap[urlToShorten] = shortUrl
 	shortToRealMap[shortUrl] = urlToShorten
 	return shortUrl
