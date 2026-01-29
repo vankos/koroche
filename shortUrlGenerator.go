@@ -1,4 +1,4 @@
-package shortUrlGenerator
+package main
 
 import (
 	"crypto/rand"

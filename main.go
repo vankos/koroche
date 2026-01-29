@@ -1,7 +1,6 @@
 package main
 
 import (
-	"koroche/shortUrlGenerator"
 	"net/http"
 	"net/url"
 
