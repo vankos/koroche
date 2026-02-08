@@ -1,14 +1,30 @@
 package urlStorage
 
+// InMemoryUrlStorage is an in-memory implementation of the UrlStorage interface
 type InMemoryUrlStorage struct {
 	realToShortMap map[string]string
 	shortToRealMap map[string]string
+	clickCountMap  map[string]int
 }
 
-func (inMemoryStorage *InMemoryUrlStorage) StoreStore(urlToShorten string, shortUrl string) {
+// Saves the mapping between the original URL and the shortened URL
+func (inMemoryStorage *InMemoryUrlStorage) Store(urlToShorten string, shortUrl string) error {
 	inMemoryStorage.realToShortMap[urlToShorten] = shortUrl
+	return nil
 }
 
-func (inMemoryStorage *InMemoryUrlStorage) Get(shortUrl string) string {
-	return inMemoryStorage.shortToRealMap[shortUrl]
+// Retrieves the original URL based on the shortened URL
+func (inMemoryStorage *InMemoryUrlStorage) Get(shortUrl string) (string, error) {
+	return inMemoryStorage.shortToRealMap[shortUrl], nil
+}
+
+// Increments the click count for a given shortened URL
+func (inMemoryStorage *InMemoryUrlStorage) IncrementClick(shortUrl string) error {
+	inMemoryStorage.clickCountMap[shortUrl]++
+	return nil
+}
+
+// Retrieves the click count for a given shortened URL
+func (inMemoryStorage *InMemoryUrlStorage) GetClickCount(shortUrl string) (int, error) {
+	return inMemoryStorage.clickCountMap[shortUrl], nil
 }
