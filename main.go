@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koroche/urlStorage"
 	"net/http"
 	"net/url"
 
@@ -10,10 +11,10 @@ import (
 const serverUrl = "http://localhost:8080"
 const shortUrlSize = 12
 
-var realToShortMap map[string]string = make(map[string]string)
-var shortToRealMap map[string]string = make(map[string]string)
+var urlStorageObj urlStorage.UrlStorage
 
 func main() {
+	urlStorageObj = &urlStorage.InMemoryUrlStorage{}
 	router := gin.Default()
 	router.POST("/create", processCreate)
 	router.GET("/get", processGet)
@@ -24,18 +25,24 @@ func main() {
 func processCreate(ginContext *gin.Context) {
 	urlToShorten := ginContext.Query("url")
 	isUrl := validateUrl(urlToShorten)
-	if isUrl {
-		shortUrl := generateShortUrl(urlToShorten)
-		ginContext.String(http.StatusOK, shortUrl)
+	if !isUrl {
+		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
 	}
 
-	ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+	existingShortUrl, _ := urlStorageObj.GetShortUrl(urlToShorten)
+	if existingShortUrl != "" {
+		ginContext.String(http.StatusOK, existingShortUrl)
+		return
+	}
+
+	shortUrl := generateShortUrl(urlToShorten)
+	urlStorageObj.Store(urlToShorten, shortUrl)
+	ginContext.String(http.StatusOK, shortUrl)
 }
 
 func generateShortUrl(urlToShorten string) string {
 	shortUrl := GenerateShortUrl(serverUrl, shortUrlSize)
-	realToShortMap[urlToShorten] = shortUrl
-	shortToRealMap[shortUrl] = urlToShorten
+	urlStorageObj.Store(urlToShorten, shortUrl)
 	return shortUrl
 }
 
@@ -56,8 +63,9 @@ func processGet(ginContext *gin.Context) {
 		return
 	}
 
-	realUrl, ok := shortToRealMap[urlToExpand]
-	if !ok {
+	realUrl, ok := urlStorageObj.GetOriginalUrl(urlToExpand)
+	urlStorageObj.IncrementClick(urlToExpand)
+	if ok != nil {
 		ginContext.AbortWithStatus(http.StatusNotFound)
 		return
 	}
