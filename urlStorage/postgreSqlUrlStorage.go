@@ -47,7 +47,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) Store(fullUrl string, shortUrl
 
 // Retrieves the original URL based on the shortened URL
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetOriginalUrl(shortUrl string) (string, error) {
-	query := `SELECT fullUrl from  users whhere shortUrl = $1`
+	query := `SELECT fullUrl from  users where shortUrl = $1`
 	execResult, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, shortUrl)
 	if err != nil {
 		return "", err
@@ -65,7 +65,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) IncrementClick(shortUrl string
 
 // Retrieves the click count for a given shortened URL
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetClickCount(shortUrl string) (int, error) {
-	query := `SELECT clicks from  users whhere shortUrl = $1`
+	query := `SELECT clicks from  users where shortUrl = $1`
 	execResult, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, shortUrl)
 	if err != nil {
 		return 0, err
@@ -77,7 +77,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetClickCount(shortUrl string)
 
 // Gets saved short URL for a given original URL, "" if not found
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetShortUrl(fillUrl string) (string, error) {
-	query := `SELECT shortUrl from  users whhere fullUrl = $1`
+	query := `SELECT shortUrl from  users where fullUrl = $1`
 	execResult, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, fillUrl)
 	if err != nil {
 		return "", err
