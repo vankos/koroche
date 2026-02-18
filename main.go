@@ -14,7 +14,12 @@ const shortUrlSize = 12
 var urlStorageObj urlStorage.UrlStorage
 
 func main() {
-	urlStorageObj = &urlStorage.InMemoryUrlStorage{}
+	urlStorage, err := urlStorage.NewPostgreSqlUrlStorage()
+	urlStorageObj = &urlStorage
+	if err != nil {
+		panic(err)
+	}
+
 	router := gin.Default()
 	router.POST("/create", processCreate)
 	router.GET("/get", processGet)
