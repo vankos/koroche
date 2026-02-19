@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -40,7 +39,7 @@ func NewPostgreSqlUrlStorage() (PostgreSqlUrlStorage, error) {
 
 // Saves the mapping between the original URL and the shortened URL
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) Store(fullUrl string, shortUrl string) error {
-	query := `INSRERT INTO users (fullUrl, shortUrl, clicks) VALUES ($1, $2, $3)`
+	query := `INSERT INTO users (fullUrl, shortUrl, clicks) VALUES ($1, $2, $3)`
 	_, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, fullUrl, shortUrl, "0")
 	return err
 }
@@ -48,12 +47,14 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) Store(fullUrl string, shortUrl
 // Retrieves the original URL based on the shortened URL
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetOriginalUrl(shortUrl string) (string, error) {
 	query := `SELECT fullUrl from  users where shortUrl = $1`
-	execResult, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, shortUrl)
+	execResult := postgreSqlUrlStorage.connectionPool.QueryRow(context.Background(), query, shortUrl)
+	var fullUrl string
+	err := execResult.Scan(&fullUrl)
 	if err != nil {
 		return "", err
 	}
 
-	return execResult.String(), nil
+	return fullUrl, nil
 }
 
 // Increments the click count for a given shortened URL
@@ -66,24 +67,27 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) IncrementClick(shortUrl string
 // Retrieves the click count for a given shortened URL
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetClickCount(shortUrl string) (int, error) {
 	query := `SELECT clicks from  users where shortUrl = $1`
-	execResult, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, shortUrl)
+	execResult := postgreSqlUrlStorage.connectionPool.QueryRow(context.Background(), query, shortUrl)
+	var count int
+	err := execResult.Scan(&count)
 	if err != nil {
 		return 0, err
 	}
 
-	count, err := strconv.Atoi(execResult.String())
 	return count, err
 }
 
 // Gets saved short URL for a given original URL, "" if not found
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetShortUrl(fillUrl string) (string, error) {
 	query := `SELECT shortUrl from  users where fullUrl = $1`
-	execResult, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, fillUrl)
+	execResult := postgreSqlUrlStorage.connectionPool.QueryRow(context.Background(), query, fillUrl)
+	var shortUrl string
+	err := execResult.Scan(&shortUrl)
 	if err != nil {
 		return "", err
 	}
 
-	return execResult.String(), nil
+	return shortUrl, nil
 }
 
 // Closes the database connection pool
