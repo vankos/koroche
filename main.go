@@ -69,7 +69,6 @@ func processGet(ginContext *gin.Context) {
 	}
 
 	realUrl, ok := urlStorageObj.GetOriginalUrl(urlToExpand)
-	urlStorageObj.IncrementClick(urlToExpand)
 	if ok != nil {
 		ginContext.AbortWithStatus(http.StatusNotFound)
 		return

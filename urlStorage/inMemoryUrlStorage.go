@@ -23,14 +23,9 @@ func (inMemoryStorage *InMemoryUrlStorage) Store(urlToShorten string, shortUrl s
 
 // Retrieves the original URL based on the shortened URL
 func (inMemoryStorage *InMemoryUrlStorage) GetOriginalUrl(shortUrl string) (string, error) {
+	inMemoryStorage.shortToRealMap[shortUrl].ClickCount++
 	inMemoryStorage.shortToRealMap[shortUrl].LasAccesedAt = time.Now()
 	return inMemoryStorage.shortToRealMap[shortUrl].OriginalUrl, nil
-}
-
-// Increments the click count for a given shortened URL
-func (inMemoryStorage *InMemoryUrlStorage) IncrementClick(shortUrl string) error {
-	inMemoryStorage.shortToRealMap[shortUrl].ClickCount++
-	return nil
 }
 
 // Retrieves the click count for a given shortened URL
