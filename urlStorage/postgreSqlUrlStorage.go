@@ -25,7 +25,9 @@ func NewPostgreSqlUrlStorage() (PostgreSqlUrlStorage, error) {
 	query := `CREATE TABLE IF NOT EXISTS users (
 		fullUrl TEXT  NOT NULL,
 		shortUrl TEXT NOT NULL,
-		clicks TEXT NOT NULL UNIQUE
+		clicks TEXT NOT NULL UNIQUE,
+		lastAccessedAt TIMESTAMPTZ,
+		createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 	);`
 
 	_, err = dbPool.Exec(context.Background(), query)
@@ -54,27 +56,32 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetOriginalUrl(shortUrl string
 		return "", err
 	}
 
+	UpdateStats(shortUrl, postgreSqlUrlStorage.connectionPool)
 	return fullUrl, nil
 }
 
 // Increments the click count for a given shortened URL
-func (postgreSqlUrlStorage *PostgreSqlUrlStorage) IncrementClick(shortUrl string) error {
-	query := `UPDATE users SET clicks = clicks + 1 WHERE shortUrl = $1`
-	_, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, shortUrl)
+func UpdateStats(shortUrl string, connectionPool *pgxpool.Pool) error {
+	query := `UPDATE users 
+				SET 
+				clicks = clicks + 1,
+				lastAccessedAt = CURRENT_TIMESTAMP
+				WHERE shortUrl = $1`
+	_, err := connectionPool.Exec(context.Background(), query, shortUrl)
 	return err
 }
 
 // Retrieves the click count for a given shortened URL
-func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetClickCount(shortUrl string) (int, error) {
-	query := `SELECT clicks from  users where shortUrl = $1`
+func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetStats(shortUrl string) (LinkStats, error) {
+	query := `SELECT clicks, fullUrl, lastAccessedAt, createdAt from  users where shortUrl = $1`
 	execResult := postgreSqlUrlStorage.connectionPool.QueryRow(context.Background(), query, shortUrl)
-	var count int
-	err := execResult.Scan(&count)
+	var stats LinkStats
+	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LasAccesedAt, &stats.CreatedAt)
 	if err != nil {
-		return 0, err
+		return LinkStats{}, err
 	}
 
-	return count, err
+	return stats, err
 }
 
 // Gets saved short URL for a given original URL, "" if not found
