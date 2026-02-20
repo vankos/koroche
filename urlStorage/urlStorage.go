@@ -8,8 +8,8 @@ type UrlStorage interface {
 	GetOriginalUrl(string) (string, error)
 	// Increments the click count for a given shortened URL
 	IncrementClick(string) error
-	// Retrieves the click count for a given shortened URL
-	GetClickCount(string) (int, error)
+	// Retrieves the link stats for a given shortened URL
+	GetStats(string) (LinkStats, error)
 	// Gets saved short URL for a given original URL, "" if not found
 	GetShortUrl(string) (string, error)
 }
