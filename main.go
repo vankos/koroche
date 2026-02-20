@@ -23,6 +23,7 @@ func main() {
 	router := gin.Default()
 	router.POST("/create", processCreate)
 	router.GET("/get", processGet)
+	router.GET("/stats", processStats)
 	parsedServerUrl, _ := url.ParseRequestURI(serverUrl)
 	router.Run(parsedServerUrl.Host)
 }
@@ -75,4 +76,21 @@ func processGet(ginContext *gin.Context) {
 	}
 
 	ginContext.String(http.StatusOK, realUrl)
+}
+
+func processStats(ginContext *gin.Context) {
+	url := ginContext.Query("url")
+	isUrl := validateUrl(url)
+	if !isUrl {
+		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
+	}
+
+	stats, ok := urlStorageObj.GetStats(url)
+	if ok != nil {
+		ginContext.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	ginContext.JSON(http.StatusOK, stats)
 }
