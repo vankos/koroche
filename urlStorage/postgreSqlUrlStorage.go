@@ -25,7 +25,7 @@ func NewPostgreSqlUrlStorage() (PostgreSqlUrlStorage, error) {
 	query := `CREATE TABLE IF NOT EXISTS urls (
 		fullUrl TEXT  NOT NULL,
 		shortUrl TEXT NOT NULL,
-		clicks TEXT NOT NULL UNIQUE,
+		clicks INTEGER NOT NULL DEFAULT 0,
 		lastAccessedAt TIMESTAMPTZ,
 		createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 	);`
