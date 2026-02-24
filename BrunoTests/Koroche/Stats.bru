@@ -1,0 +1,20 @@
+meta {
+  name: Stats
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/stats?url={{shortUrl}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  url: {{shortUrl}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
