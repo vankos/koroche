@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"koroche/urlStorage"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +28,8 @@ func main() {
 	router.GET("/stats", processStats)
 	parsedServerUrl, _ := url.ParseRequestURI(serverUrl)
 	router.Run(parsedServerUrl.Host)
+	ctx := context.Background()
+	go MonitorOldLinks(ctx)
 }
 
 func processCreate(ginContext *gin.Context) {
@@ -93,4 +97,21 @@ func processStats(ginContext *gin.Context) {
 	}
 
 	ginContext.JSON(http.StatusOK, stats)
+}
+
+func MonitorOldLinks(ctx context.Context) {
+	DeleteOldLinks()
+	ticker := time.NewTicker(time.Hour * 24)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			DeleteOldLinks()
+		}
+	}
+}
+
+func DeleteOldLinks() {
+	urlStorageObj.DeleteLinksOlderThan(time.Hour * 24)
 }
