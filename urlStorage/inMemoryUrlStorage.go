@@ -37,3 +37,15 @@ func (inMemoryStorage *InMemoryUrlStorage) GetStats(shortUrl string) (LinkStats,
 func (inMemoryStorage *InMemoryUrlStorage) GetShortUrl(url string) (string, error) {
 	return inMemoryStorage.realToShortMap[url], nil
 }
+
+// Deletes links that are older than the specified duration
+func (inMemoryStorage *InMemoryUrlStorage) DeleteLinksOlderThan(olderThan time.Duration) {
+	for key := range inMemoryStorage.shortToRealMap {
+		stats := inMemoryStorage.shortToRealMap[key]
+		oldTime := time.Now().Add(-olderThan)
+		if stats.CreatedAt.Before(oldTime) {
+			delete(inMemoryStorage.shortToRealMap, key)
+			delete(inMemoryStorage.realToShortMap, stats.OriginalUrl)
+		}
+	}
+}
