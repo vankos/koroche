@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -95,6 +96,13 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetShortUrl(fillUrl string) (s
 	}
 
 	return shortUrl, nil
+}
+
+// Deletes links that are older than the specified duration
+func (postgreSqlUrlStorage *PostgreSqlUrlStorage) DeleteLinksOlderThan(olderThan time.Duration) {
+	oldTime := time.Now().Add(-olderThan)
+	query := `DELETE from urls where createdAt < $1`
+	postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, oldTime)
 }
 
 // Closes the database connection pool
