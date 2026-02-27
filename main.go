@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"koroche/urlStorage"
 	"net/http"
 	"net/url"
@@ -18,6 +19,7 @@ var urlStorageObj urlStorage.UrlStorage
 func main() {
 	urlStorage, err := urlStorage.NewPostgreSqlUrlStorage()
 	urlStorageObj = &urlStorage
+	defer CloseIfNeeded(urlStorageObj)
 	if err != nil {
 		panic(err)
 	}
@@ -30,6 +32,15 @@ func main() {
 	router.Run(parsedServerUrl.Host)
 	ctx := context.Background()
 	go MonitorOldLinks(ctx)
+}
+
+func CloseIfNeeded(urlStorage urlStorage.UrlStorage) {
+	closable, ok := urlStorage.(io.Closer)
+	if !ok {
+		return
+	}
+
+	closable.Close()
 }
 
 func processCreate(ginContext *gin.Context) {
