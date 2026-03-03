@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"koroche/urlStorage"
-	"net/http"
 	"net/url"
 	"time"
 
@@ -14,31 +13,29 @@ import (
 const serverUrl = "http://localhost:8080"
 const shortUrlSize = 12
 
-var urlStorageObj urlStorage.UrlStorage
-
 func main() {
 	urlStorage, err := urlStorage.NewPostgreSqlUrlStorage()
-	urlStorageObj = &urlStorage
-	defer CloseIfNeeded(urlStorageObj)
+	defer CloseIfNeeded(&urlStorage)
 	if err != nil {
 		panic(err)
 	}
 
 	statsChannel := make(chan string)
-	go CollectStats(statsChannel)
+	controller := NewController(&urlStorage, statsChannel)
+	go CollectStats(statsChannel, &urlStorage)
 	router := gin.Default()
-	router.POST("/create", processCreate)
-	router.GET("/get", processGet)
-	router.GET("/stats", processStats)
+	router.POST("/create", controller.ProcessCreate)
+	router.GET("/get", controller.ProcessGet)
+	router.GET("/stats", controller.ProcessStats)
 	parsedServerUrl, _ := url.ParseRequestURI(serverUrl)
 	router.Run(parsedServerUrl.Host)
 	ctx := context.Background()
-	go MonitorOldLinks(ctx)
+	go MonitorOldLinks(ctx, &urlStorage)
 }
 
-func CollectStats(statsChannel <-chan string) {
+func CollectStats(statsChannel <-chan string, urlStorage urlStorage.UrlStorage) {
 	for shortUrl := range statsChannel {
-		urlStorageObj.UpdateStats(shortUrl)
+		urlStorage.UpdateStats(shortUrl)
 	}
 }
 
@@ -51,30 +48,6 @@ func CloseIfNeeded(urlStorage urlStorage.UrlStorage) {
 	closable.Close()
 }
 
-func processCreate(ginContext *gin.Context) {
-	urlToShorten := ginContext.Query("url")
-	isUrl := validateUrl(urlToShorten)
-	if !isUrl {
-		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
-	}
-
-	existingShortUrl, _ := urlStorageObj.GetShortUrl(urlToShorten)
-	if existingShortUrl != "" {
-		ginContext.String(http.StatusOK, existingShortUrl)
-		return
-	}
-
-	shortUrl := generateShortUrl(urlToShorten)
-	urlStorageObj.Store(urlToShorten, shortUrl)
-	ginContext.String(http.StatusOK, shortUrl)
-}
-
-func generateShortUrl(urlToShorten string) string {
-	shortUrl := GenerateShortUrl(serverUrl, shortUrlSize)
-	urlStorageObj.Store(urlToShorten, shortUrl)
-	return shortUrl
-}
-
 func validateUrl(urlToShorten string) bool {
 	_, err := url.ParseRequestURI(urlToShorten)
 	if err != nil {
@@ -84,53 +57,19 @@ func validateUrl(urlToShorten string) bool {
 	return true
 }
 
-func processGet(ginContext *gin.Context) {
-	urlToExpand := ginContext.Query("url")
-	isUrl := validateUrl(urlToExpand)
-	if !isUrl {
-		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
-		return
-	}
-
-	realUrl, ok := urlStorageObj.GetOriginalUrl(urlToExpand)
-	if ok != nil {
-		ginContext.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-
-	ginContext.String(http.StatusOK, realUrl)
-}
-
-func processStats(ginContext *gin.Context) {
-	url := ginContext.Query("url")
-	isUrl := validateUrl(url)
-	if !isUrl {
-		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
-		return
-	}
-
-	stats, ok := urlStorageObj.GetStats(url)
-	if ok != nil {
-		ginContext.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-
-	ginContext.JSON(http.StatusOK, stats)
-}
-
-func MonitorOldLinks(ctx context.Context) {
-	DeleteOldLinks()
+func MonitorOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
+	DeleteOldLinks(urlStorage)
 	ticker := time.NewTicker(time.Hour * 24)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			DeleteOldLinks()
+			DeleteOldLinks(urlStorage)
 		}
 	}
 }
 
-func DeleteOldLinks() {
-	urlStorageObj.DeleteLinksOlderThan(time.Hour * 24)
+func DeleteOldLinks(urlStorage urlStorage.UrlStorage) {
+	urlStorage.DeleteLinksOlderThan(time.Hour * 24)
 }
