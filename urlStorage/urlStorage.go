@@ -14,4 +14,6 @@ type UrlStorage interface {
 	GetShortUrl(string) (string, error)
 	// Deletes links that are older than the specified duration
 	DeleteLinksOlderThan(time.Duration)
+	// Update stats for short URL
+	UpdateStats(string) error
 }

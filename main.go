@@ -24,6 +24,8 @@ func main() {
 		panic(err)
 	}
 
+	statsChannel := make(chan string)
+	go CollectStats(statsChannel)
 	router := gin.Default()
 	router.POST("/create", processCreate)
 	router.GET("/get", processGet)
@@ -32,6 +34,13 @@ func main() {
 	router.Run(parsedServerUrl.Host)
 	ctx := context.Background()
 	go MonitorOldLinks(ctx)
+}
+
+func CollectStats(statsChannel <-chan string) {
+	for {
+		shortUrl := <-statsChannel
+		urlStorageObj.UpdateStats(shortUrl)
+	}
 }
 
 func CloseIfNeeded(urlStorage urlStorage.UrlStorage) {
