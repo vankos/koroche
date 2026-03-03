@@ -23,8 +23,6 @@ func (inMemoryStorage *InMemoryUrlStorage) Store(urlToShorten string, shortUrl s
 
 // Retrieves the original URL based on the shortened URL
 func (inMemoryStorage *InMemoryUrlStorage) GetOriginalUrl(shortUrl string) (string, error) {
-	inMemoryStorage.shortToRealMap[shortUrl].ClickCount++
-	inMemoryStorage.shortToRealMap[shortUrl].LasAccesedAt = time.Now()
 	return inMemoryStorage.shortToRealMap[shortUrl].OriginalUrl, nil
 }
 
@@ -48,4 +46,10 @@ func (inMemoryStorage *InMemoryUrlStorage) DeleteLinksOlderThan(olderThan time.D
 			delete(inMemoryStorage.realToShortMap, stats.OriginalUrl)
 		}
 	}
+}
+
+func (inMemoryStorage *InMemoryUrlStorage) UpdateStats(shortUrl string) error {
+	inMemoryStorage.shortToRealMap[shortUrl].ClickCount++
+	inMemoryStorage.shortToRealMap[shortUrl].LasAccesedAt = time.Now()
+	return nil
 }
