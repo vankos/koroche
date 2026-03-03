@@ -37,8 +37,7 @@ func main() {
 }
 
 func CollectStats(statsChannel <-chan string) {
-	for {
-		shortUrl := <-statsChannel
+	for shortUrl := range statsChannel {
 		urlStorageObj.UpdateStats(shortUrl)
 	}
 }
