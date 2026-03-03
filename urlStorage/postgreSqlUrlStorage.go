@@ -57,19 +57,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetOriginalUrl(shortUrl string
 		return "", err
 	}
 
-	UpdateStats(shortUrl, postgreSqlUrlStorage.connectionPool)
 	return fullUrl, nil
-}
-
-// Increments the click count for a given shortened URL
-func UpdateStats(shortUrl string, connectionPool *pgxpool.Pool) error {
-	query := `UPDATE urls 
-				SET 
-				clicks = clicks + 1,
-				lastAccessedAt = CURRENT_TIMESTAMP
-				WHERE shortUrl = $1`
-	_, err := connectionPool.Exec(context.Background(), query, shortUrl)
-	return err
 }
 
 // Retrieves the click count for a given shortened URL
@@ -109,4 +97,15 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) DeleteLinksOlderThan(olderThan
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) Close() error {
 	postgreSqlUrlStorage.connectionPool.Close()
 	return nil
+}
+
+// Update stats for short URL
+func (postgreSqlUrlStorage *PostgreSqlUrlStorage) UpdateStats(shortUrl string) error {
+	query := `UPDATE urls 
+				SET 
+				clicks = clicks + 1,
+				lastAccessedAt = CURRENT_TIMESTAMP
+				WHERE shortUrl = $1`
+	_, err := postgreSqlUrlStorage.connectionPool.Exec(context.Background(), query, shortUrl)
+	return err
 }
