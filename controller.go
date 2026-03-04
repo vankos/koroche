@@ -55,6 +55,7 @@ func (controller *Controller) ProcessGet(ginContext *gin.Context) {
 	}
 
 	ginContext.String(http.StatusOK, realUrl)
+	controller.statsChannel <- urlToExpand
 }
 
 func (controller *Controller) ProcessStats(ginContext *gin.Context) {
