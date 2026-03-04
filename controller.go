@@ -29,14 +29,15 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
 	}
 
-	existingShortUrl, _ := controller.urlStorage.GetShortUrl(urlToShorten)
+	ctx := ginContext.Request.Context()
+	existingShortUrl, _ := controller.urlStorage.GetShortUrl(ctx, urlToShorten)
 	if existingShortUrl != "" {
 		ginContext.String(http.StatusOK, existingShortUrl)
 		return
 	}
 
 	shortUrl := GenerateShortUrl(serverUrl, shortUrlSize)
-	controller.urlStorage.Store(urlToShorten, shortUrl)
+	controller.urlStorage.Store(ctx, urlToShorten, shortUrl)
 	ginContext.String(http.StatusOK, shortUrl)
 }
 
@@ -48,7 +49,8 @@ func (controller *Controller) ProcessGet(ginContext *gin.Context) {
 		return
 	}
 
-	realUrl, ok := controller.urlStorage.GetOriginalUrl(urlToExpand)
+	ctx := ginContext.Request.Context()
+	realUrl, ok := controller.urlStorage.GetOriginalUrl(ctx, urlToExpand)
 	if ok != nil {
 		ginContext.AbortWithStatus(http.StatusNotFound)
 		return
@@ -66,7 +68,8 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 		return
 	}
 
-	stats, ok := controller.urlStorage.GetStats(url)
+	ctx := ginContext.Request.Context()
+	stats, ok := controller.urlStorage.GetStats(ctx, url)
 	if ok != nil {
 		ginContext.AbortWithStatus(http.StatusNotFound)
 		return

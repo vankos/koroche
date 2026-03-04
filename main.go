@@ -28,14 +28,17 @@ func main() {
 	router.GET("/get", controller.ProcessGet)
 	router.GET("/stats", controller.ProcessStats)
 	parsedServerUrl, _ := url.ParseRequestURI(serverUrl)
-	router.Run(parsedServerUrl.Host)
 	ctx := context.Background()
 	go MonitorOldLinks(ctx, &urlStorage)
+	router.Run(parsedServerUrl.Host)
+
 }
 
 func CollectStats(statsChannel <-chan string, urlStorage urlStorage.UrlStorage) {
+	backgrpundContext := context.Background()
 	for shortUrl := range statsChannel {
-		urlStorage.UpdateStats(shortUrl)
+		ctx, _ := context.WithTimeout(backgrpundContext, time.Second*5)
+		urlStorage.UpdateStats(ctx, shortUrl)
 	}
 }
 

@@ -1,6 +1,9 @@
 package urlStorage
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // InMemoryUrlStorage is an in-memory implementation of the UrlStorage interface
 type InMemoryUrlStorage struct {
@@ -22,22 +25,22 @@ func (inMemoryStorage *InMemoryUrlStorage) Store(urlToShorten string, shortUrl s
 }
 
 // Retrieves the original URL based on the shortened URL
-func (inMemoryStorage *InMemoryUrlStorage) GetOriginalUrl(shortUrl string) (string, error) {
+func (inMemoryStorage *InMemoryUrlStorage) GetOriginalUrl(_ context.Context, shortUrl string) (string, error) {
 	return inMemoryStorage.shortToRealMap[shortUrl].OriginalUrl, nil
 }
 
 // Retrieves the click count for a given shortened URL
-func (inMemoryStorage *InMemoryUrlStorage) GetStats(shortUrl string) (LinkStats, error) {
+func (inMemoryStorage *InMemoryUrlStorage) GetStats(_ context.Context, shortUrl string) (LinkStats, error) {
 	return *inMemoryStorage.shortToRealMap[shortUrl], nil
 }
 
 // // Gets saved short URL for a given original URL, "" if not found
-func (inMemoryStorage *InMemoryUrlStorage) GetShortUrl(url string) (string, error) {
+func (inMemoryStorage *InMemoryUrlStorage) GetShortUrl(_ context.Context, url string) (string, error) {
 	return inMemoryStorage.realToShortMap[url], nil
 }
 
 // Deletes links that are older than the specified duration
-func (inMemoryStorage *InMemoryUrlStorage) DeleteLinksOlderThan(olderThan time.Duration) {
+func (inMemoryStorage *InMemoryUrlStorage) DeleteLinksOlderThan(_ context.Context, olderThan time.Duration) {
 	for key := range inMemoryStorage.shortToRealMap {
 		stats := inMemoryStorage.shortToRealMap[key]
 		oldTime := time.Now().Add(-olderThan)
@@ -48,7 +51,7 @@ func (inMemoryStorage *InMemoryUrlStorage) DeleteLinksOlderThan(olderThan time.D
 	}
 }
 
-func (inMemoryStorage *InMemoryUrlStorage) UpdateStats(shortUrl string) error {
+func (inMemoryStorage *InMemoryUrlStorage) UpdateStats(_ context.Context, shortUrl string) error {
 	inMemoryStorage.shortToRealMap[shortUrl].ClickCount++
 	inMemoryStorage.shortToRealMap[shortUrl].LasAccesedAt = time.Now()
 	return nil
