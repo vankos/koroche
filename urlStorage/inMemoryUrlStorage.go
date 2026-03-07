@@ -12,7 +12,7 @@ type InMemoryUrlStorage struct {
 }
 
 // Saves the mapping between the original URL and the shortened URL
-func (inMemoryStorage *InMemoryUrlStorage) Store(urlToShorten string, shortUrl string) error {
+func (inMemoryStorage *InMemoryUrlStorage) Store(_ context.Context, urlToShorten string, shortUrl string) error {
 	inMemoryStorage.shortToRealMap[shortUrl] = &LinkStats{
 		ShortUrl:     shortUrl,
 		OriginalUrl:  urlToShorten,
