@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"koroche/urlStorage"
 	"net/http"
 	"time"
@@ -84,7 +85,18 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 func (controller *Controller) CollectStats() {
 	backgrpundContext := context.Background()
 	for shortUrl := range controller.statsChannel {
-		ctx, _ := context.WithTimeout(backgrpundContext, time.Second*5)
+		ctx, cancel := context.WithTimeout(backgrpundContext, time.Second*5)
+		defer cancel()
 		controller.urlStorage.UpdateStats(ctx, shortUrl)
 	}
+}
+
+func (controller *Controller) Close() error {
+	closable, ok := controller.urlStorage.(io.Closer)
+	if ok {
+		closable.Close()
+	}
+
+	close(controller.statsChannel)
+	return nil
 }

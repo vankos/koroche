@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"io"
 	"koroche/urlStorage"
 	"net/url"
 	"time"
@@ -15,13 +14,13 @@ const shortUrlSize = 12
 
 func main() {
 	urlStorage, err := urlStorage.NewPostgreSqlUrlStorage()
-	defer CloseIfNeeded(&urlStorage)
 	if err != nil {
 		panic(err)
 	}
 
 	statsChannel := make(chan string)
 	controller := NewController(&urlStorage, statsChannel)
+	defer Close(*controller)
 	router := gin.Default()
 	router.POST("/create", controller.ProcessCreate)
 	router.GET("/get", controller.ProcessGet)
@@ -33,13 +32,8 @@ func main() {
 
 }
 
-func CloseIfNeeded(urlStorage urlStorage.UrlStorage) {
-	closable, ok := urlStorage.(io.Closer)
-	if !ok {
-		return
-	}
-
-	closable.Close()
+func Close(controller Controller) {
+	controller.Close()
 }
 
 func validateUrl(urlToShorten string) bool {
@@ -52,18 +46,18 @@ func validateUrl(urlToShorten string) bool {
 }
 
 func MonitorOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
-	DeleteOldLinks(urlStorage)
+	DeleteOldLinks(ctx, urlStorage)
 	ticker := time.NewTicker(time.Hour * 24)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			DeleteOldLinks(urlStorage)
+			DeleteOldLinks(ctx, urlStorage)
 		}
 	}
 }
 
-func DeleteOldLinks(urlStorage urlStorage.UrlStorage) {
-	urlStorage.DeleteLinksOlderThan(time.Hour * 24)
+func DeleteOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
+	urlStorage.DeleteLinksOlderThan(ctx, time.Hour*24)
 }
