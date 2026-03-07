@@ -31,6 +31,7 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 	isUrl := validateUrl(urlToShorten)
 	if !isUrl {
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
 	}
 
 	ctx := ginContext.Request.Context()
