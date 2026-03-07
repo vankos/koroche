@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"koroche/urlStorage"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +21,7 @@ func NewController(urlStorage urlStorage.UrlStorage, statsChannel chan string) *
 		statsChannel: statsChannel,
 	}
 
+	go controller.CollectStats()
 	return controller
 }
 
@@ -76,4 +79,12 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 	}
 
 	ginContext.JSON(http.StatusOK, stats)
+}
+
+func (controller *Controller) CollectStats() {
+	backgrpundContext := context.Background()
+	for shortUrl := range controller.statsChannel {
+		ctx, _ := context.WithTimeout(backgrpundContext, time.Second*5)
+		controller.urlStorage.UpdateStats(ctx, shortUrl)
+	}
 }

@@ -22,7 +22,6 @@ func main() {
 
 	statsChannel := make(chan string)
 	controller := NewController(&urlStorage, statsChannel)
-	go CollectStats(statsChannel, &urlStorage)
 	router := gin.Default()
 	router.POST("/create", controller.ProcessCreate)
 	router.GET("/get", controller.ProcessGet)
@@ -32,14 +31,6 @@ func main() {
 	go MonitorOldLinks(ctx, &urlStorage)
 	router.Run(parsedServerUrl.Host)
 
-}
-
-func CollectStats(statsChannel <-chan string, urlStorage urlStorage.UrlStorage) {
-	backgrpundContext := context.Background()
-	for shortUrl := range statsChannel {
-		ctx, _ := context.WithTimeout(backgrpundContext, time.Second*5)
-		urlStorage.UpdateStats(ctx, shortUrl)
-	}
 }
 
 func CloseIfNeeded(urlStorage urlStorage.UrlStorage) {
