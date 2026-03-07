@@ -86,7 +86,7 @@ func (controller *Controller) CollectStats() {
 	backgrpundContext := context.Background()
 	for shortUrl := range controller.statsChannel {
 		ctx, cancel := context.WithTimeout(backgrpundContext, time.Second*5)
-		defer cancel()
+		cancel()
 		controller.urlStorage.UpdateStats(ctx, shortUrl)
 	}
 }
