@@ -24,8 +24,8 @@ func NewPostgreSqlUrlStorage() (PostgreSqlUrlStorage, error) {
 	}
 	postgreSqlUrlStorage.connectionPool = dbPool
 	query := `CREATE TABLE IF NOT EXISTS urls (
-		fullUrl TEXT  NOT NULL,
-		shortUrl TEXT NOT NULL,
+		fullUrl TEXT  NOT NULL UNIQUE,
+		shortUrl TEXT NOT NULL UNIQUE,
 		clicks INTEGER NOT NULL DEFAULT 0,
 		lastAccessedAt TIMESTAMPTZ,
 		createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -42,7 +42,9 @@ func NewPostgreSqlUrlStorage() (PostgreSqlUrlStorage, error) {
 
 // Saves the mapping between the original URL and the shortened URL
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) Store(ctx context.Context, fullUrl string, shortUrl string) error {
-	query := `INSERT INTO urls (fullUrl, shortUrl, clicks) VALUES ($1, $2, $3)`
+	query := `INSERT INTO urls (fullUrl, shortUrl, clicks) 
+	VALUES ($1, $2, $3) 
+	ON CONFLICT (fullUrl, shortUrl) DO NOTHING`
 	_, err := postgreSqlUrlStorage.connectionPool.Exec(ctx, query, fullUrl, shortUrl, "0")
 	return err
 }
