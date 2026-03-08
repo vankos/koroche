@@ -36,7 +36,7 @@ func (inMemoryStorage *InMemoryUrlStorage) Store(_ context.Context, urlToShorten
 func (inMemoryStorage *InMemoryUrlStorage) GetOriginalUrl(_ context.Context, shortUrl string) (string, error) {
 	stats, ok := inMemoryStorage.shortToRealMap[shortUrl]
 	if !ok {
-		return "", nil
+		return "", error.New("Short url not found")
 	}
 
 	return stats.OriginalUrl, nil
