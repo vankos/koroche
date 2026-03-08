@@ -20,7 +20,7 @@ func main() {
 
 	statsChannel := make(chan string)
 	controller := NewController(&urlStorage, statsChannel)
-	defer Close(*controller)
+	defer Close(controller)
 	router := gin.Default()
 	router.POST("/create", controller.ProcessCreate)
 	router.GET("/get", controller.ProcessGet)
@@ -34,7 +34,7 @@ func main() {
 
 }
 
-func Close(controller Controller) {
+func Close(controller *Controller) {
 	controller.Close()
 }
 
