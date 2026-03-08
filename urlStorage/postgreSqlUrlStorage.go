@@ -44,7 +44,7 @@ func NewPostgreSqlUrlStorage() (PostgreSqlUrlStorage, error) {
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) Store(ctx context.Context, fullUrl string, shortUrl string) error {
 	query := `INSERT INTO urls (fullUrl, shortUrl, clicks) 
 	VALUES ($1, $2, $3) 
-	ON CONFLICT (fullUrl, shortUrl) DO NOTHING`
+	ON CONFLICT DO NOTHING`
 	_, err := postgreSqlUrlStorage.connectionPool.Exec(ctx, query, fullUrl, shortUrl, "0")
 	return err
 }
