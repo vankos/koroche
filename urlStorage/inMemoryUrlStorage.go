@@ -13,11 +13,12 @@ type InMemoryUrlStorage struct {
 
 // Saves the mapping between the original URL and the shortened URL
 func (inMemoryStorage *InMemoryUrlStorage) Store(_ context.Context, urlToShorten string, shortUrl string) error {
+	now := time.Now()
 	inMemoryStorage.shortToRealMap[shortUrl] = &LinkStats{
 		ShortUrl:     shortUrl,
 		OriginalUrl:  urlToShorten,
-		CreatedAt:    time.Now(),
-		LasAccesedAt: time.Now(),
+		CreatedAt:    now,
+		LasAccesedAt: &now,
 		ClickCount:   0}
 
 	inMemoryStorage.realToShortMap[urlToShorten] = shortUrl
@@ -53,6 +54,7 @@ func (inMemoryStorage *InMemoryUrlStorage) DeleteLinksOlderThan(_ context.Contex
 
 func (inMemoryStorage *InMemoryUrlStorage) UpdateStats(_ context.Context, shortUrl string) error {
 	inMemoryStorage.shortToRealMap[shortUrl].ClickCount++
-	inMemoryStorage.shortToRealMap[shortUrl].LasAccesedAt = time.Now()
+	now := time.Now()
+	inMemoryStorage.shortToRealMap[shortUrl].LasAccesedAt = &now
 	return nil
 }
