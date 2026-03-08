@@ -26,7 +26,9 @@ func main() {
 	router.GET("/get", controller.ProcessGet)
 	router.GET("/stats", controller.ProcessStats)
 	parsedServerUrl, _ := url.ParseRequestURI(serverUrl)
-	ctx := context.Background()
+	bgCtx := context.Background()
+	ctx, cancel := context.WithCancel(bgCtx)
+	defer cancel()
 	go MonitorOldLinks(ctx, &urlStorage)
 	router.Run(parsedServerUrl.Host)
 
