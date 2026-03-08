@@ -11,6 +11,13 @@ type InMemoryUrlStorage struct {
 	shortToRealMap map[string]*LinkStats
 }
 
+func NewInMemoryUrlStorage() InMemoryUrlStorage {
+	return InMemoryUrlStorage{
+		realToShortMap: make(map[string]string),
+		shortToRealMap: make(map[string]*LinkStats),
+	}
+}
+
 // Saves the mapping between the original URL and the shortened URL
 func (inMemoryStorage *InMemoryUrlStorage) Store(_ context.Context, urlToShorten string, shortUrl string) error {
 	now := time.Now()
