@@ -44,7 +44,12 @@ func (inMemoryStorage *InMemoryUrlStorage) GetOriginalUrl(_ context.Context, sho
 
 // Retrieves the click count for a given shortened URL
 func (inMemoryStorage *InMemoryUrlStorage) GetStats(_ context.Context, shortUrl string) (LinkStats, error) {
-	return *inMemoryStorage.shortToRealMap[shortUrl], nil
+	stats, ok := inMemoryStorage.shortToRealMap[shortUrl]
+	if !ok {
+		return LinkStats{}, error.New("Short url not found")
+	}
+	
+	return *stats, nil
 }
 
 // // Gets saved short URL for a given original URL, "" if not found
