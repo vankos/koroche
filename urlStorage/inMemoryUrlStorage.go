@@ -2,6 +2,7 @@ package urlStorage
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -36,7 +37,7 @@ func (inMemoryStorage *InMemoryUrlStorage) Store(_ context.Context, urlToShorten
 func (inMemoryStorage *InMemoryUrlStorage) GetOriginalUrl(_ context.Context, shortUrl string) (string, error) {
 	stats, ok := inMemoryStorage.shortToRealMap[shortUrl]
 	if !ok {
-		return "", error.New("Short url not found")
+		return "", errors.New("Short url not found")
 	}
 
 	return stats.OriginalUrl, nil
@@ -46,9 +47,9 @@ func (inMemoryStorage *InMemoryUrlStorage) GetOriginalUrl(_ context.Context, sho
 func (inMemoryStorage *InMemoryUrlStorage) GetStats(_ context.Context, shortUrl string) (LinkStats, error) {
 	stats, ok := inMemoryStorage.shortToRealMap[shortUrl]
 	if !ok {
-		return LinkStats{}, error.New("Short url not found")
+		return LinkStats{}, errors.New("Short url not found")
 	}
-	
+
 	return *stats, nil
 }
 
