@@ -42,7 +42,12 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 	}
 
 	shortUrl := GenerateShortUrl(serverUrl, shortUrlSize)
-	controller.urlStorage.Store(ctx, urlToShorten, shortUrl)
+	err := controller.urlStorage.Store(ctx, urlToShorten, shortUrl)
+	if err != nil {
+		ginContext.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	ginContext.String(http.StatusOK, shortUrl)
 }
 
