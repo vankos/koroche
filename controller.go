@@ -98,7 +98,6 @@ func (controller *Controller) CollectStats() {
 }
 
 func (controller *Controller) Close() error {
-	close(controller.statsChannel)
 	closable, ok := controller.urlStorage.(io.Closer)
 	if ok {
 		closable.Close()
