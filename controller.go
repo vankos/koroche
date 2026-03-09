@@ -91,9 +91,11 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 func (controller *Controller) CollectStats() {
 	backgrpundContext := context.Background()
 	for shortUrl := range controller.statsChannel {
-		ctx, cancel := context.WithTimeout(backgrpundContext, time.Second*5)
-		controller.urlStorage.UpdateStats(ctx, shortUrl)
-		cancel()
+		func() {
+			ctx, cancel := context.WithTimeout(backgrpundContext, time.Second*5)
+			defer cancel()
+			controller.urlStorage.UpdateStats(ctx, shortUrl)
+		}()
 	}
 }
 
