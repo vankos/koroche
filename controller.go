@@ -12,14 +12,16 @@ import (
 
 // Controller is responsible for handling incoming HTTP requests and interacting with the URL storage
 type Controller struct {
-	statsChannel chan string
-	urlStorage   urlStorage.UrlStorage
+	statsChannel  chan string
+	urlStorage    urlStorage.UrlStorage
+	shortUrlsHost string
 }
 
-func NewController(urlStorage urlStorage.UrlStorage, statsChannel chan string) *Controller {
+func NewController(urlStorage urlStorage.UrlStorage, statsChannel chan string, shortUrlsHost string) *Controller {
 	controller := &Controller{
-		urlStorage:   urlStorage,
-		statsChannel: statsChannel,
+		urlStorage:    urlStorage,
+		statsChannel:  statsChannel,
+		shortUrlsHost: shortUrlsHost,
 	}
 
 	go controller.CollectStats()
@@ -41,7 +43,7 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 		return
 	}
 
-	shortUrl := GenerateShortUrl(serverUrl, shortUrlSize)
+	shortUrl := GenerateShortUrl(controller.shortUrlsHost, shortUrlSize)
 	err := controller.urlStorage.Store(ctx, urlToShorten, shortUrl)
 	if err != nil {
 		ginContext.AbortWithStatus(http.StatusInternalServerError)

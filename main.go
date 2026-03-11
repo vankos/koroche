@@ -4,12 +4,12 @@ import (
 	"context"
 	"koroche/urlStorage"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-const serverUrl = "http://localhost:8080"
 const shortUrlSize = 12
 
 func main() {
@@ -19,18 +19,19 @@ func main() {
 	}
 
 	statsChannel := make(chan string)
-	controller := NewController(&urlStorage, statsChannel)
+	shortUrlHostName := os.Getenv("HOST_NAME")
+	controller := NewController(&urlStorage, statsChannel, shortUrlHostName)
 	defer Close(controller)
 	router := gin.Default()
 	router.POST("/create", controller.ProcessCreate)
 	router.GET("/get", controller.ProcessGet)
 	router.GET("/stats", controller.ProcessStats)
-	parsedServerUrl, _ := url.ParseRequestURI(serverUrl)
+	port := ":" + os.Getenv("PORT")
 	bgCtx := context.Background()
 	ctx, cancel := context.WithCancel(bgCtx)
 	defer cancel()
 	go MonitorOldLinks(ctx, &urlStorage)
-	router.Run(parsedServerUrl.Host)
+	router.Run(port)
 
 }
 
