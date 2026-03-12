@@ -51,6 +51,7 @@ func validateUrl(urlToShorten string) bool {
 func MonitorOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
 	DeleteOldLinks(ctx, urlStorage)
 	ticker := time.NewTicker(time.Hour * 24)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
