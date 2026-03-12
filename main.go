@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 
-	statsChannel := make(chan string)
+	statsChannel := make(chan string, 100)
 	shortUrlHostName := os.Getenv("HOST_NAME")
 	controller := NewController(&urlStorage, statsChannel, shortUrlHostName)
 	defer Close(controller)
