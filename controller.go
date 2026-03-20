@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"koroche/urlStorage"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -32,6 +33,7 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 	urlToShorten := ginContext.Query("url")
 	isUrl := validateUrl(urlToShorten)
 	if !isUrl {
+		slog.Info("Invalid URL provided for shortening", "url", urlToShorten)
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
 		return
 	}
@@ -46,6 +48,7 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 	shortUrl := GenerateShortUrl(controller.shortUrlsHost, shortUrlSize)
 	err := controller.urlStorage.Store(ctx, urlToShorten, shortUrl)
 	if err != nil {
+		slog.Info("	Failed to store URL mapping", "url", urlToShorten, "error", err)
 		ginContext.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
@@ -57,6 +60,7 @@ func (controller *Controller) ProcessGet(ginContext *gin.Context) {
 	urlToExpand := ginContext.Query("url")
 	isUrl := validateUrl(urlToExpand)
 	if !isUrl {
+		slog.Info("	Invalid URL provided for expansion", "url", urlToExpand)
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
 		return
 	}
@@ -64,6 +68,7 @@ func (controller *Controller) ProcessGet(ginContext *gin.Context) {
 	ctx := ginContext.Request.Context()
 	realUrl, ok := controller.urlStorage.GetOriginalUrl(ctx, urlToExpand)
 	if ok != nil {
+		slog.Info("	No original URL found for the provided short URL", "url", urlToExpand)
 		ginContext.AbortWithStatus(http.StatusNotFound)
 		return
 	}
@@ -76,6 +81,7 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 	url := ginContext.Query("url")
 	isUrl := validateUrl(url)
 	if !isUrl {
+		slog.Info("	Invalid URL provided for stats retrieval", "url", url)
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
 		return
 	}
@@ -83,6 +89,7 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 	ctx := ginContext.Request.Context()
 	stats, ok := controller.urlStorage.GetStats(ctx, url)
 	if ok != nil {
+		slog.Info("	No stats found for the provided URL", "url", url)
 		ginContext.AbortWithStatus(http.StatusNotFound)
 		return
 	}
@@ -91,6 +98,7 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 }
 
 func (controller *Controller) CollectStats() {
+	slog.Info("Starting stats collector")
 	backgrpundContext := context.Background()
 	for shortUrl := range controller.statsChannel {
 		func() {
@@ -102,6 +110,7 @@ func (controller *Controller) CollectStats() {
 }
 
 func (controller *Controller) Close() error {
+	slog.Info("Closing controller")
 	closable, ok := controller.urlStorage.(io.Closer)
 	if ok {
 		closable.Close()

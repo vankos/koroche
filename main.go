@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"koroche/urlStorage"
+	"log/slog"
 	"net/url"
 	"os"
 	"time"
@@ -13,6 +14,10 @@ import (
 const shortUrlSize = 12
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	Level: slog.LevelDebug,
+}))
+	slog.SetDefault(logger)
 	urlStorage, err := urlStorage.NewPostgreSqlUrlStorage()
 	if err != nil {
 		panic(err)
@@ -36,12 +41,14 @@ func main() {
 }
 
 func Close(controller *Controller) {
+	slog.Info("Closing..")
 	controller.Close()
 }
 
 func validateUrl(urlToShorten string) bool {
 	_, err := url.ParseRequestURI(urlToShorten)
 	if err != nil {
+		slog.Warn("Invalid URL", "url", urlToShorten)
 		return false
 	}
 
@@ -49,12 +56,14 @@ func validateUrl(urlToShorten string) bool {
 }
 
 func MonitorOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
+	slog.Info("Starting old links monitor")
 	DeleteOldLinks(ctx, urlStorage)
 	ticker := time.NewTicker(time.Hour * 24)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
+			slog.Info("Stopping old links monitor")
 			return
 		case <-ticker.C:
 			DeleteOldLinks(ctx, urlStorage)
