@@ -14,9 +14,8 @@ type PostgreSqlUrlStorage struct {
 	connectionPool *pgxpool.Pool
 }
 
-func NewPostgreSqlUrlStorage() (PostgreSqlUrlStorage, error) {
+func NewPostgreSqlUrlStorage(dsn string) (PostgreSqlUrlStorage, error) {
 	postgreSqlUrlStorage := PostgreSqlUrlStorage{}
-	dsn := os.Getenv("POSTGRES_DATA_SOURCE_NAME")
 	dbPool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)

@@ -15,10 +15,11 @@ const shortUrlSize = 12
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-	Level: slog.LevelDebug,
-}))
+		Level: slog.LevelDebug,
+	}))
 	slog.SetDefault(logger)
-	urlStorage, err := urlStorage.NewPostgreSqlUrlStorage()
+	dsn := os.Getenv("POSTGRES_DATA_SOURCE_NAME")
+	urlStorage, err := urlStorage.NewPostgreSqlUrlStorage(dsn)
 	if err != nil {
 		panic(err)
 	}
