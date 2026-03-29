@@ -23,11 +23,11 @@ func NewInMemoryUrlStorage() InMemoryUrlStorage {
 func (inMemoryStorage *InMemoryUrlStorage) Store(_ context.Context, urlToShorten string, shortUrl string) error {
 	now := time.Now()
 	inMemoryStorage.shortToRealMap[shortUrl] = &LinkStats{
-		ShortUrl:     shortUrl,
-		OriginalUrl:  urlToShorten,
-		CreatedAt:    now,
-		LasAccesedAt: &now,
-		ClickCount:   0}
+		ShortUrl:      shortUrl,
+		OriginalUrl:   urlToShorten,
+		CreatedAt:     now,
+		LastAccesedAt: &now,
+		ClickCount:    0}
 
 	inMemoryStorage.realToShortMap[urlToShorten] = shortUrl
 	return nil
@@ -73,6 +73,6 @@ func (inMemoryStorage *InMemoryUrlStorage) DeleteLinksOlderThan(_ context.Contex
 func (inMemoryStorage *InMemoryUrlStorage) UpdateStats(_ context.Context, shortUrl string) error {
 	inMemoryStorage.shortToRealMap[shortUrl].ClickCount++
 	now := time.Now()
-	inMemoryStorage.shortToRealMap[shortUrl].LasAccesedAt = &now
+	inMemoryStorage.shortToRealMap[shortUrl].LastAccesedAt = &now
 	return nil
 }

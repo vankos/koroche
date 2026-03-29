@@ -67,7 +67,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetStats(ctx context.Context, 
 	query := `SELECT clicks, fullUrl, lastAccessedAt, createdAt from  urls where shortUrl = $1`
 	execResult := postgreSqlUrlStorage.connectionPool.QueryRow(ctx, query, shortUrl)
 	var stats LinkStats
-	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LasAccesedAt, &stats.CreatedAt)
+	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LastAccesedAt, &stats.CreatedAt)
 	if err != nil {
 		return LinkStats{}, err
 	}
