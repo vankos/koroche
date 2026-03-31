@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-func GetUrlStoragesToTest() []UrlStorage {
+func GetUrlStoragesToTest(t *testing.T) []UrlStorage {
 	inMemoryStorage := NewInMemoryUrlStorage()
-	postgresStorage, _ := NewPostgreSqlUrlStorage()
+	dsn := SetupPostgresContainer(t)
+	postgresStorage, _ := NewPostgreSqlUrlStorage(dsn)
 	urlstorages := []UrlStorage{
 		&inMemoryStorage,
 		&postgresStorage,
@@ -19,8 +21,29 @@ func GetUrlStoragesToTest() []UrlStorage {
 	return urlstorages
 }
 
+func SetupPostgresContainer(t *testing.T) string {
+	pgContainer, err := postgres.Run(t.Context(),
+		"postgres:16-alpine",
+		postgres.WithDatabase("testdb"),
+		postgres.WithUsername("postgres"),
+		postgres.WithPassword("password"),
+		postgres.BasicWaitStrategies())
+	if err != nil {
+		panic("Unable to start PostgreSQL container")
+	}
+	t.Cleanup(func() {
+		pgContainer.Terminate(t.Context())
+	})
+
+	connString, err := pgContainer.ConnectionString(t.Context(), "sslmode=disable")
+	if err != nil {
+		panic("Unable to get connection string for PostgreSQL container")
+	}
+	return connString
+}
+
 func TestUrlStorages(t *testing.T) {
-	urlStoragesToTest := GetUrlStoragesToTest()
+	urlStoragesToTest := GetUrlStoragesToTest(t)
 	for _, urlStorageToTest := range urlStoragesToTest {
 		testedType := fmt.Sprintf("%T", urlStorageToTest)
 		t.Run(testedType, func(t *testing.T) {
@@ -125,6 +148,7 @@ func testDeleteLinksOlderThan(t *testing.T, urlStorage *UrlStorage) {
 		assert.Nil(t, err)
 	})
 	t.Run("Delete old links - link should be deleted", func(t *testing.T) {
+		time.Sleep(10 * time.Millisecond)
 		(*urlStorage).DeleteLinksOlderThan(t.Context(), time.Millisecond)
 		actualOriginalUrl, err := (*urlStorage).GetOriginalUrl(t.Context(), shortUrl)
 		assert.Equal(t, "", actualOriginalUrl)
