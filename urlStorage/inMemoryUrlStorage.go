@@ -55,7 +55,12 @@ func (inMemoryStorage *InMemoryUrlStorage) GetStats(_ context.Context, shortUrl 
 
 // // Gets saved short URL for a given original URL, "" if not found
 func (inMemoryStorage *InMemoryUrlStorage) GetShortUrl(_ context.Context, url string) (string, error) {
-	return inMemoryStorage.realToShortMap[url], nil
+	result, ok := inMemoryStorage.realToShortMap[url]
+	if !ok {
+		return "", errors.New("Original url not found")
+	}
+
+	return result, nil
 }
 
 // Deletes links that are older than the specified duration

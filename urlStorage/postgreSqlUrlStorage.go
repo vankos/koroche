@@ -63,10 +63,10 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetOriginalUrl(ctx context.Con
 
 // Retrieves the click count for a given shortened URL
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetStats(ctx context.Context, shortUrl string) (LinkStats, error) {
-	query := `SELECT clicks, fullUrl, lastAccessedAt, createdAt from  urls where shortUrl = $1`
+	query := `SELECT clicks, fullUrl, lastAccessedAt, createdAt, shortUrl from  urls where shortUrl = $1`
 	execResult := postgreSqlUrlStorage.connectionPool.QueryRow(ctx, query, shortUrl)
 	var stats LinkStats
-	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LastAccesedAt, &stats.CreatedAt)
+	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LastAccesedAt, &stats.CreatedAt, &stats.ShortUrl)
 	if err != nil {
 		return LinkStats{}, err
 	}
