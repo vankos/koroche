@@ -28,10 +28,7 @@ func main() {
 	shortUrlHostName := os.Getenv("HOST_NAME")
 	controller := NewController(&urlStorage, statsChannel, shortUrlHostName)
 	defer Close(controller)
-	router := gin.Default()
-	router.POST("/create", controller.ProcessCreate)
-	router.GET("/get", controller.ProcessGet)
-	router.GET("/stats", controller.ProcessStats)
+	router := SetupRouter(controller)
 	port := ":" + os.Getenv("PORT")
 	bgCtx := context.Background()
 	ctx, cancel := context.WithCancel(bgCtx)
@@ -39,6 +36,14 @@ func main() {
 	go MonitorOldLinks(ctx, &urlStorage)
 	router.Run(port)
 
+}
+
+func SetupRouter(controller *Controller) *gin.Engine {
+	router := gin.Default()
+	router.POST("/create", controller.ProcessCreate)
+	router.GET("/get", controller.ProcessGet)
+	router.GET("/stats", controller.ProcessStats)
+	return router
 }
 
 func Close(controller *Controller) {
