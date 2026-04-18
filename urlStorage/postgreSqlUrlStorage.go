@@ -19,7 +19,7 @@ func NewPostgreSqlUrlStorage(dsn string) (PostgreSqlUrlStorage, error) {
 	dbPool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		return postgreSqlUrlStorage, err
+		return postgreSqlUrlStorage, &UrlStorageError{Code: StorageFailure}
 	}
 	postgreSqlUrlStorage.connectionPool = dbPool
 	query := `CREATE TABLE IF NOT EXISTS urls (
@@ -33,7 +33,7 @@ func NewPostgreSqlUrlStorage(dsn string) (PostgreSqlUrlStorage, error) {
 	_, err = dbPool.Exec(context.Background(), query)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to create table: %v\n", err)
-		return postgreSqlUrlStorage, err
+		return postgreSqlUrlStorage, &UrlStorageError{Code: StorageFailure}
 	}
 
 	return postgreSqlUrlStorage, err
@@ -45,6 +45,10 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) Store(ctx context.Context, ful
 	VALUES ($1, $2, $3) 
 	ON CONFLICT DO NOTHING`
 	_, err := postgreSqlUrlStorage.connectionPool.Exec(ctx, query, fullUrl, shortUrl, "0")
+	if err != nil {
+		return &UrlStorageError{Code: StorageFailure}
+	}
+
 	return err
 }
 
@@ -55,7 +59,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetOriginalUrl(ctx context.Con
 	var fullUrl string
 	err := execResult.Scan(&fullUrl)
 	if err != nil {
-		return "", err
+		return "", &UrlStorageError{Code: StorageFailure}
 	}
 
 	return fullUrl, nil
@@ -68,7 +72,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetStats(ctx context.Context, 
 	var stats LinkStats
 	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LastAccesedAt, &stats.CreatedAt, &stats.ShortUrl)
 	if err != nil {
-		return LinkStats{}, err
+		return LinkStats{}, &UrlStorageError{Code: StorageFailure}
 	}
 
 	return stats, err
@@ -81,7 +85,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetShortUrl(ctx context.Contex
 	var shortUrl string
 	err := execResult.Scan(&shortUrl)
 	if err != nil {
-		return "", err
+		return "", &UrlStorageError{Code: StorageFailure}
 	}
 
 	return shortUrl, nil
@@ -108,5 +112,9 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) UpdateStats(ctx context.Contex
 				lastAccessedAt = CURRENT_TIMESTAMP
 				WHERE shortUrl = $1`
 	_, err := postgreSqlUrlStorage.connectionPool.Exec(ctx, query, shortUrl)
+	if err != nil {
+		return &UrlStorageError{Code: StorageFailure}
+	}
+
 	return err
 }
