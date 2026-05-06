@@ -45,7 +45,14 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 		return
 	}
 
-	shortUrl := GenerateShortUrl(controller.shortUrlsHost, shortUrlSize)
+	customAlias := ginContext.Query("custom_alias")
+	shortUrl, aliasError := GenerateShortUrl(controller.shortUrlsHost, shortUrlSize, customAlias)
+	if aliasError != nil {
+		slog.Info("Invalid custom alias provided for shortening", "alias", customAlias, "error", aliasError)
+		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
+	}
+
 	err := controller.urlStorage.Store(ctx, urlToShorten, shortUrl)
 	if err != nil {
 		slog.Info("	Failed to store URL mapping", "url", urlToShorten, "error", err)

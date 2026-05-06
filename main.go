@@ -4,7 +4,6 @@ import (
 	"context"
 	"koroche/urlStorage"
 	"log/slog"
-	"net/url"
 	"os"
 	"time"
 
@@ -49,16 +48,6 @@ func SetupRouter(controller *Controller) *gin.Engine {
 func Close(controller *Controller) {
 	slog.Info("Closing..")
 	controller.Close()
-}
-
-func validateUrl(urlToShorten string) bool {
-	_, err := url.ParseRequestURI(urlToShorten)
-	if err != nil {
-		slog.Warn("Invalid URL", "url", urlToShorten)
-		return false
-	}
-
-	return true
 }
 
 func MonitorOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
