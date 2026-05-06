@@ -1,0 +1,25 @@
+meta {
+  name: Create shortcut with alias
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host}}/create?url=https://www.google.com&custom_alias=validAlias
+  body: none
+  auth: inherit
+}
+
+params:query {
+  url: https://www.google.com
+  custom_alias: validAlias
+}
+
+vars:post-response {
+  shortUrl: res.body
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
