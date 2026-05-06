@@ -115,6 +115,30 @@ func TestStats(t *testing.T) {
 	}
 }
 
+func TestСreateCustomAlias(t *testing.T) {
+	router := SetUpRouter()
+	testData := []struct {
+		requestUrl   string
+		customAlias  string
+		expectedCode int
+		expectString bool
+	}{
+		{"https://www.google.com", "validAlias", http.StatusOK, true},
+		{"https://www.example.com", "ivalid Alias", http.StatusUnprocessableEntity, false},
+	}
+
+	for _, data := range testData {
+		t.Run(data.requestUrl, func(t *testing.T) {
+			request, _ := http.NewRequest("POST", "/create?url="+data.requestUrl+"&custom_alias="+data.customAlias, nil)
+			recorder := httptest.NewRecorder()
+			router.ServeHTTP(recorder, request)
+			assert.Equal(t, data.expectedCode, recorder.Code)
+			assert.Equal(t, recorder.Body.String() != "", data.expectString)
+		})
+
+	}
+}
+
 func IncrementStats(data struct {
 	shortUrl     string
 	expectedCode int
