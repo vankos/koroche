@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"koroche/urlStorage"
+	"github.com/vankos/koroche/urlStorage"
 	"log/slog"
 	"os"
 	"time"

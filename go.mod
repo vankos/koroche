@@ -1,4 +1,4 @@
-module koroche
+module github.com/vankos/koroche
 
 go 1.25.6
 

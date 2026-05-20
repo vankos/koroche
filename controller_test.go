@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"koroche/urlStorage"
+	"github.com/vankos/koroche/urlStorage"
 	"net/http"
 	"net/http/httptest"
 	"testing"
