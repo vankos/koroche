@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"io"
-	"github.com/vankos/koroche/urlStorage"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/vankos/koroche/urlStorage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +19,8 @@ type Controller struct {
 	shortUrlsHost string
 }
 
+// NewController creates a new instance of Controller,
+// initializes the stats collector goroutine, and returns the controller instance
 func NewController(urlStorage urlStorage.UrlStorage, statsChannel chan string, shortUrlsHost string) *Controller {
 	controller := &Controller{
 		urlStorage:    urlStorage,
@@ -29,6 +32,9 @@ func NewController(urlStorage urlStorage.UrlStorage, statsChannel chan string, s
 	return controller
 }
 
+// ProcessCreate handles the creation of a shortened URL.
+// It validates the input URL, checks for existing mappings,
+// generates a new short URL if necessary, and stores the mapping in the URL storage.
 func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 	urlToShorten := ginContext.Query("url")
 	isUrl := validateUrl(urlToShorten)
@@ -63,6 +69,7 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 	ginContext.String(http.StatusOK, shortUrl)
 }
 
+// ProcessGet handles the retrieval of the original URL based on the provided shortened URL.
 func (controller *Controller) ProcessGet(ginContext *gin.Context) {
 	urlToExpand := ginContext.Query("url")
 	isUrl := validateUrl(urlToExpand)
@@ -84,6 +91,7 @@ func (controller *Controller) ProcessGet(ginContext *gin.Context) {
 	controller.statsChannel <- urlToExpand
 }
 
+// ProcessStats handles the retrieval of statistics for a given shortened URL, including click count and original URL.
 func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 	url := ginContext.Query("url")
 	isUrl := validateUrl(url)
@@ -104,6 +112,7 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, stats)
 }
 
+// CollectStats listens for short URLs on the statsChannel and updates their statistics in the URL storage.
 func (controller *Controller) CollectStats() {
 	slog.Info("Starting stats collector")
 	backgrpundContext := context.Background()
@@ -116,6 +125,7 @@ func (controller *Controller) CollectStats() {
 	}
 }
 
+// Close gracefully shuts down the controller, ensuring that any resources used by the URL storage are properly released.
 func (controller *Controller) Close() error {
 	slog.Info("Closing controller")
 	closable, ok := controller.urlStorage.(io.Closer)

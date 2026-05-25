@@ -14,6 +14,7 @@ const (
 	testhostName   = "http://localhost:8080"
 )
 
+// validateUrl checks if the provided URL is valid and can be parsed.
 func validateUrl(urlToShorten string) bool {
 	_, err := url.ParseRequestURI(urlToShorten)
 	if err != nil {
@@ -24,7 +25,7 @@ func validateUrl(urlToShorten string) bool {
 	return true
 }
 
-// Validate if custom
+// ValidateAlias checks if the provided custom alias is valid according to defined rules (length, character restrictions, etc.).
 func ValidateAlias(aliasToValidate string) error {
 	if aliasToValidate == "" {
 		return errors.New("Alias is empty")
@@ -50,6 +51,7 @@ func ValidateAlias(aliasToValidate string) error {
 	return nil
 }
 
+// validateAliasRune checks if the provided rune is valid for use in a custom alias.
 func validateAliasRune(aliasRune rune) error {
 	if unicode.IsControl(aliasRune) {
 		return errors.New("Alias contains control characters")

@@ -8,6 +8,7 @@ import (
 
 const base62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
+// GenerateShortUrl generates a short URL based on the provided server URL, desired URL size, and an optional custom alias.
 func GenerateShortUrl(serverUrl string, urlSize int, customAlias string) (string, error) {
 
 	path, error := GetPath(customAlias, urlSize)
@@ -20,6 +21,7 @@ func GenerateShortUrl(serverUrl string, urlSize int, customAlias string) (string
 	return shortUrl.String(), nil
 }
 
+// GenerateRandomPath generates a random string of the specified length using characters from the base62 set.
 func GenerateRandomPath(urlSize int) string {
 	var randomPart string = ""
 	for range urlSize {
@@ -30,6 +32,7 @@ func GenerateRandomPath(urlSize int) string {
 	return randomPart
 }
 
+// GetPath determines the path to be used for the short URL based on the provided custom alias and desired URL size.
 func GetPath(customAlias string, shortUrlSize int) (string, error) {
 	if customAlias == "" {
 		return GenerateRandomPath(shortUrlSize), nil

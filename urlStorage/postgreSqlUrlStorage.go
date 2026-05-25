@@ -14,6 +14,7 @@ type PostgreSqlUrlStorage struct {
 	connectionPool *pgxpool.Pool
 }
 
+// NewPostgreSqlUrlStorage creates a new instance of PostgreSqlUrlStorage and initializes the database connection pool
 func NewPostgreSqlUrlStorage(dsn string) (PostgreSqlUrlStorage, error) {
 	postgreSqlUrlStorage := PostgreSqlUrlStorage{}
 	dbPool, err := pgxpool.New(context.Background(), dsn)

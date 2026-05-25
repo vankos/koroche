@@ -11,6 +11,7 @@ type InMemoryUrlStorage struct {
 	shortToRealMap map[string]*LinkStats
 }
 
+// Creates a new instance of InMemoryUrlStorage
 func NewInMemoryUrlStorage() InMemoryUrlStorage {
 	return InMemoryUrlStorage{
 		realToShortMap: make(map[string]string),
@@ -52,7 +53,7 @@ func (inMemoryStorage *InMemoryUrlStorage) GetStats(_ context.Context, shortUrl 
 	return *stats, nil
 }
 
-// // Gets saved short URL for a given original URL, "" if not found
+// Gets saved short URL for a given original URL, "" if not found
 func (inMemoryStorage *InMemoryUrlStorage) GetShortUrl(_ context.Context, url string) (string, error) {
 	result, ok := inMemoryStorage.realToShortMap[url]
 	if !ok {
@@ -74,6 +75,7 @@ func (inMemoryStorage *InMemoryUrlStorage) DeleteLinksOlderThan(_ context.Contex
 	}
 }
 
+// Update stats for short URL
 func (inMemoryStorage *InMemoryUrlStorage) UpdateStats(_ context.Context, shortUrl string) error {
 	inMemoryStorage.shortToRealMap[shortUrl].ClickCount++
 	now := time.Now()

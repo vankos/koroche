@@ -2,10 +2,16 @@ package urlStorage
 
 import "time"
 
+// LinkStats represents the statistics of a shortened URL
 type LinkStats struct {
-	ShortUrl      string
-	OriginalUrl   string
-	CreatedAt     time.Time
+	// ShortUrl is the shortened URL
+	ShortUrl string
+	// OriginalUrl is the original URL that was shortened
+	OriginalUrl string
+	// CreatedAt is the time when the short URL was created
+	CreatedAt time.Time
+	// LastAccesedAt is the time when the short URL was last accessed
 	LastAccesedAt *time.Time
-	ClickCount    int
+	// ClickCount is the number of times the short URL has been accessed
+	ClickCount int
 }

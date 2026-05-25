@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/vankos/koroche/urlStorage"
 	"log/slog"
 	"os"
 	"time"
+
+	"github.com/vankos/koroche/urlStorage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,6 +38,8 @@ func main() {
 
 }
 
+// SetupRouter initializes the Gin router and registers the controller's endpoints for creating,
+// retrieving, and getting statistics of shortened URLs.
 func SetupRouter(controller *Controller) *gin.Engine {
 	router := gin.Default()
 	router.POST("/create", controller.ProcessCreate)
@@ -45,11 +48,14 @@ func SetupRouter(controller *Controller) *gin.Engine {
 	return router
 }
 
+// Close gracefully shuts down the controller,
+// ensuring that any resources used by the URL storage are properly released.
 func Close(controller *Controller) {
 	slog.Info("Closing..")
 	controller.Close()
 }
 
+// MonitorOldLinks starts a background goroutine that periodically checks for and deletes old links from the URL storage.
 func MonitorOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
 	slog.Info("Starting old links monitor")
 	DeleteOldLinks(ctx, urlStorage)
@@ -66,6 +72,7 @@ func MonitorOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
 	}
 }
 
+// DeleteOldLinks deletes links from the URL storage that are older than a specified duration (e.g., 24 hours).
 func DeleteOldLinks(ctx context.Context, urlStorage urlStorage.UrlStorage) {
 	urlStorage.DeleteLinksOlderThan(ctx, time.Hour*24)
 }
