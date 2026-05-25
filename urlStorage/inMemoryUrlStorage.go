@@ -11,7 +11,7 @@ type InMemoryUrlStorage struct {
 	shortToRealMap map[string]*LinkStats
 }
 
-// Creates a new instance of InMemoryUrlStorage
+//NewInMemoryUrlStorage ceates a new instance of InMemoryUrlStorage
 func NewInMemoryUrlStorage() InMemoryUrlStorage {
 	return InMemoryUrlStorage{
 		realToShortMap: make(map[string]string),
