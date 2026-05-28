@@ -1,4 +1,4 @@
-package main
+package urlTools
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ const (
 )
 
 // validateUrl checks if the provided URL is valid and can be parsed.
-func validateUrl(urlToShorten string) bool {
+func ValidateUrl(urlToShorten string) bool {
 	_, err := url.ParseRequestURI(urlToShorten)
 	if err != nil {
 		slog.Warn("Invalid URL", "url", urlToShorten)

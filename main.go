@@ -6,9 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/vankos/koroche/controller"
 	"github.com/vankos/koroche/urlStorage"
-
-	"github.com/gin-gonic/gin"
 )
 
 const shortUrlSize = 12
@@ -26,9 +25,9 @@ func main() {
 
 	statsChannel := make(chan string, 100)
 	shortUrlHostName := os.Getenv("HOST_NAME")
-	controller := NewController(&urlStorage, statsChannel, shortUrlHostName)
-	defer Close(controller)
-	router := SetupRouter(controller)
+	cntrlr := controller.NewController(&urlStorage, statsChannel, shortUrlHostName, shortUrlSize)
+	defer Close(cntrlr)
+	router := controller.SetupRouter(cntrlr)
 	port := ":" + os.Getenv("PORT")
 	bgCtx := context.Background()
 	ctx, cancel := context.WithCancel(bgCtx)
@@ -38,19 +37,9 @@ func main() {
 
 }
 
-// SetupRouter initializes the Gin router and registers the controller's endpoints for creating,
-// retrieving, and getting statistics of shortened URLs.
-func SetupRouter(controller *Controller) *gin.Engine {
-	router := gin.Default()
-	router.POST("/create", controller.ProcessCreate)
-	router.GET("/get", controller.ProcessGet)
-	router.GET("/stats", controller.ProcessStats)
-	return router
-}
-
 // Close gracefully shuts down the controller,
 // ensuring that any resources used by the URL storage are properly released.
-func Close(controller *Controller) {
+func Close(controller *controller.Controller) {
 	slog.Info("Closing..")
 	controller.Close()
 }

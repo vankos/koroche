@@ -1,4 +1,4 @@
-package main
+package controller
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/vankos/koroche/urlStorage"
+	"github.com/vankos/koroche/urlTools"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,15 +18,21 @@ type Controller struct {
 	statsChannel  chan string
 	urlStorage    urlStorage.UrlStorage
 	shortUrlsHost string
+	shortUrlSize  int
 }
 
 // NewController creates a new instance of Controller,
 // initializes the stats collector goroutine, and returns the controller instance
-func NewController(urlStorage urlStorage.UrlStorage, statsChannel chan string, shortUrlsHost string) *Controller {
+func NewController(
+	urlStorage urlStorage.UrlStorage,
+	statsChannel chan string,
+	shortUrlsHost string,
+	shortUrlSize int) *Controller {
 	controller := &Controller{
 		urlStorage:    urlStorage,
 		statsChannel:  statsChannel,
 		shortUrlsHost: shortUrlsHost,
+		shortUrlSize:  shortUrlSize,
 	}
 
 	go controller.CollectStats()
@@ -37,7 +44,7 @@ func NewController(urlStorage urlStorage.UrlStorage, statsChannel chan string, s
 // generates a new short URL if necessary, and stores the mapping in the URL storage.
 func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 	urlToShorten := ginContext.Query("url")
-	isUrl := validateUrl(urlToShorten)
+	isUrl := urlTools.ValidateUrl(urlToShorten)
 	if !isUrl {
 		slog.Info("Invalid URL provided for shortening", "url", urlToShorten)
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
@@ -52,7 +59,7 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 	}
 
 	customAlias := ginContext.Query("custom_alias")
-	shortUrl, aliasError := GenerateShortUrl(controller.shortUrlsHost, shortUrlSize, customAlias)
+	shortUrl, aliasError := urlTools.GenerateShortUrl(controller.shortUrlsHost, controller.shortUrlSize, customAlias)
 	if aliasError != nil {
 		slog.Info("Invalid custom alias provided for shortening", "alias", customAlias, "error", aliasError)
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
@@ -72,7 +79,7 @@ func (controller *Controller) ProcessCreate(ginContext *gin.Context) {
 // ProcessGet handles the retrieval of the original URL based on the provided shortened URL.
 func (controller *Controller) ProcessGet(ginContext *gin.Context) {
 	urlToExpand := ginContext.Query("url")
-	isUrl := validateUrl(urlToExpand)
+	isUrl := urlTools.ValidateUrl(urlToExpand)
 	if !isUrl {
 		slog.Info("	Invalid URL provided for expansion", "url", urlToExpand)
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
@@ -94,7 +101,7 @@ func (controller *Controller) ProcessGet(ginContext *gin.Context) {
 // ProcessStats handles the retrieval of statistics for a given shortened URL, including click count and original URL.
 func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 	url := ginContext.Query("url")
-	isUrl := validateUrl(url)
+	isUrl := urlTools.ValidateUrl(url)
 	if !isUrl {
 		slog.Info("	Invalid URL provided for stats retrieval", "url", url)
 		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
@@ -123,6 +130,16 @@ func (controller *Controller) CollectStats() {
 			controller.urlStorage.UpdateStats(ctx, shortUrl)
 		}()
 	}
+}
+
+// SetupRouter initializes the Gin router and registers the controller's endpoints for creating,
+// retrieving, and getting statistics of shortened URLs.
+func SetupRouter(controller *Controller) *gin.Engine {
+	router := gin.Default()
+	router.POST("/create", controller.ProcessCreate)
+	router.GET("/get", controller.ProcessGet)
+	router.GET("/stats", controller.ProcessStats)
+	return router
 }
 
 // Close gracefully shuts down the controller, ensuring that any resources used by the URL storage are properly released.

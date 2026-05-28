@@ -1,29 +1,31 @@
-package main
+package controller
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/vankos/koroche/urlStorage"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/vankos/koroche/urlStorage"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetUpRouter() *gin.Engine {
+func setUpRouter() *gin.Engine {
 	urlStorage := urlStorage.NewInMemoryUrlStorage()
 	statsChannel := make(chan string, 100)
 	shortUrlHostName := "http://localhost:8080"
-	controller := NewController(&urlStorage, statsChannel, shortUrlHostName)
+	shortUrlSize := 12
+	controller := NewController(&urlStorage, statsChannel, shortUrlHostName, shortUrlSize)
 	router := SetupRouter(controller)
 	return router
 }
 
 func TestСreate(t *testing.T) {
-	router := SetUpRouter()
+	router := setUpRouter()
 	testData := []struct {
 		requestUrl   string
 		expectedCode int
@@ -46,7 +48,7 @@ func TestСreate(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	router := SetUpRouter()
+	router := setUpRouter()
 	originalUrl := "https://www.google.com"
 	request, _ := http.NewRequest("POST", "/create?url="+originalUrl, nil)
 	recorder := httptest.NewRecorder()
@@ -75,7 +77,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestStats(t *testing.T) {
-	router := SetUpRouter()
+	router := setUpRouter()
 	originalUrl := "https://www.google.com"
 	request, _ := http.NewRequest("POST", "/create?url="+originalUrl, nil)
 	recorder := httptest.NewRecorder()
@@ -116,7 +118,7 @@ func TestStats(t *testing.T) {
 }
 
 func TestСreateCustomAlias(t *testing.T) {
-	router := SetUpRouter()
+	router := setUpRouter()
 	testData := []struct {
 		requestUrl   string
 		customAlias  string
