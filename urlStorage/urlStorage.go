@@ -19,4 +19,6 @@ type UrlStorage interface {
 	DeleteLinksOlderThan(context.Context, time.Duration)
 	// Update stats for short URL
 	UpdateStats(context.Context, string) error
+	// Get n top-clicked URLs with specified offset
+	GetTopLinks(context.Context, int, int) []string
 }
