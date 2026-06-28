@@ -1,7 +1,9 @@
 package urlStorage
 
 import (
+	"cmp"
 	"context"
+	"slices"
 	"time"
 )
 
@@ -11,7 +13,7 @@ type InMemoryUrlStorage struct {
 	shortToRealMap map[string]*LinkStats
 }
 
-//NewInMemoryUrlStorage ceates a new instance of InMemoryUrlStorage
+// NewInMemoryUrlStorage ceates a new instance of InMemoryUrlStorage
 func NewInMemoryUrlStorage() InMemoryUrlStorage {
 	return InMemoryUrlStorage{
 		realToShortMap: make(map[string]string),
@@ -81,4 +83,22 @@ func (inMemoryStorage *InMemoryUrlStorage) UpdateStats(_ context.Context, shortU
 	now := time.Now()
 	inMemoryStorage.shortToRealMap[shortUrl].LastAccesedAt = &now
 	return nil
+}
+
+func (inMemoryStorage *InMemoryUrlStorage) GetTopLinks(ctx context.Context, urlsToReturn int, offset int) ([]string, error) {
+	mapValues := make([]LinkStats, 0, len(inMemoryStorage.shortToRealMap))
+	for _, value := range inMemoryStorage.shortToRealMap {
+		mapValues = append(mapValues, *value)
+	}
+	slices.SortFunc(mapValues, func(a, b LinkStats) int {
+		return cmp.Compare(a.ClickCount, b.ClickCount)
+	})
+
+	topDoamins := make([]string, 0, urlsToReturn)
+	for i := offset; i < offset+urlsToReturn; i++ {
+		topDoamins = append(topDoamins, mapValues[i].OriginalUrl)
+	}
+
+	return topDoamins, nil
+
 }
