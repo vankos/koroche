@@ -119,3 +119,16 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) UpdateStats(ctx context.Contex
 
 	return err
 }
+
+// Get n top-clicked URLs with specified offset
+func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetTopLinks(ctx context.Context, urlsToReturn int, offset int) ([]string, error) {
+	query := `SELECT shortUrl from  urls order by clicks desc limit $1 offset $2`
+	execResult, queryErr := postgreSqlUrlStorage.connectionPool.Query(ctx, query, urlsToReturn, offset)
+	if queryErr != nil {
+		return nil, &UrlStorageError{Code: StorageFailure}
+	}
+
+	topDomains := make([]string, 0, urlsToReturn)
+	err := execResult.Scan(topDomains)
+	return topDomains, err
+}
