@@ -85,7 +85,7 @@ func (inMemoryStorage *InMemoryUrlStorage) UpdateStats(_ context.Context, shortU
 	return nil
 }
 
-func (inMemoryStorage *InMemoryUrlStorage) GetTopLinks(ctx context.Context, urlsToReturn int, offset int) ([]string, error) {
+func (inMemoryStorage *InMemoryUrlStorage) GetTopLinks(ctx context.Context, urlsToReturn int, offset int) ([]LinkStats, error) {
 	mapValues := make([]LinkStats, 0, len(inMemoryStorage.shortToRealMap))
 	for _, value := range inMemoryStorage.shortToRealMap {
 		mapValues = append(mapValues, *value)
@@ -94,9 +94,9 @@ func (inMemoryStorage *InMemoryUrlStorage) GetTopLinks(ctx context.Context, urls
 		return cmp.Compare(a.ClickCount, b.ClickCount)
 	})
 
-	topDoamins := make([]string, 0, urlsToReturn)
+	topDoamins := make([]LinkStats, 0, urlsToReturn)
 	for i := offset; i < offset+urlsToReturn; i++ {
-		topDoamins = append(topDoamins, mapValues[i].OriginalUrl)
+		topDoamins = append(topDoamins, mapValues[i])
 	}
 
 	return topDoamins, nil

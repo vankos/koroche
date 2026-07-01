@@ -20,5 +20,5 @@ type UrlStorage interface {
 	// Update stats for short URL
 	UpdateStats(context.Context, string) error
 	// Get n top-clicked URLs with specified offset
-	GetTopLinks(ctx context.Context, urlsToReturn int, offset int) ([]string, error)
+	GetTopLinks(ctx context.Context, urlsToReturn int, offset int) ([]LinkStats, error)
 }

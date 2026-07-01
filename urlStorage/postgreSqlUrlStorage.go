@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -70,12 +71,17 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetOriginalUrl(ctx context.Con
 func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetStats(ctx context.Context, shortUrl string) (LinkStats, error) {
 	query := `SELECT clicks, fullUrl, lastAccessedAt, createdAt, shortUrl from  urls where shortUrl = $1`
 	execResult := postgreSqlUrlStorage.connectionPool.QueryRow(ctx, query, shortUrl)
-	var stats LinkStats
-	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LastAccesedAt, &stats.CreatedAt, &stats.ShortUrl)
+	stats, err := ScanLinkStats(execResult)
 	if err != nil {
 		return LinkStats{}, &UrlStorageError{Code: StorageFailure}
 	}
 
+	return stats, err
+}
+
+func ScanLinkStats(execResult pgx.Row) (LinkStats, error) {
+	var stats LinkStats
+	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LastAccesedAt, &stats.CreatedAt, &stats.ShortUrl)
 	return stats, err
 }
 
@@ -121,14 +127,22 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) UpdateStats(ctx context.Contex
 }
 
 // Get n top-clicked URLs with specified offset
-func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetTopLinks(ctx context.Context, urlsToReturn int, offset int) ([]string, error) {
-	query := `SELECT shortUrl from  urls order by clicks desc limit $1 offset $2`
+func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetTopLinks(ctx context.Context, urlsToReturn int, offset int) ([]LinkStats, error) {
+	query := `SELECT clicks, fullUrl, lastAccessedAt, createdAt, shortUrl  from  urls order by clicks desc limit $1 offset $2`
 	execResult, queryErr := postgreSqlUrlStorage.connectionPool.Query(ctx, query, urlsToReturn, offset)
 	if queryErr != nil {
 		return nil, &UrlStorageError{Code: StorageFailure}
 	}
 
-	topDomains := make([]string, 0, urlsToReturn)
-	err := execResult.Scan(topDomains)
-	return topDomains, err
+	topDomains := make([]LinkStats, 0, urlsToReturn)
+	for execResult.Next() {
+		stats, err := ScanLinkStats(execResult)
+		if err != nil {
+			return make([]LinkStats, 0), &UrlStorageError{Code: StorageFailure}
+		}
+
+		topDomains = append(topDomains, stats)
+	}
+
+	return topDomains, nil
 }
