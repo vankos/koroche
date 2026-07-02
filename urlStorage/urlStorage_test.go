@@ -52,6 +52,7 @@ func TestUrlStorages(t *testing.T) {
 			testGetStats(t, &urlStorageToTest)
 			testGetShortUrl(t, &urlStorageToTest)
 			testDeleteLinksOlderThan(t, &urlStorageToTest)
+			testGetTopLinks(t, &urlStorageToTest)
 		})
 	}
 }
@@ -155,4 +156,35 @@ func testDeleteLinksOlderThan(t *testing.T, urlStorage *UrlStorage) {
 		assert.NotNil(t, err)
 	})
 
+}
+
+func testGetTopLinks(t *testing.T, urlStorage *UrlStorage) {
+	originalUrl1 := "https://www.example.com"
+	shortUrl1 := "abc"
+	originalUrl2 := "https://www.example1.com"
+	shortUrl2 := "abc111"
+	originalUrl3 := "https://www.example2.com"
+	shortUrl3 := "abc222"
+	(*urlStorage).Store(t.Context(), originalUrl1, shortUrl1)
+	(*urlStorage).Store(t.Context(), originalUrl2, shortUrl2)
+	(*urlStorage).Store(t.Context(), originalUrl3, shortUrl3)
+	(*urlStorage).UpdateStats(t.Context(), shortUrl2)
+	(*urlStorage).UpdateStats(t.Context(), shortUrl2)
+	(*urlStorage).UpdateStats(t.Context(), shortUrl2)
+	(*urlStorage).UpdateStats(t.Context(), shortUrl1)
+	(*urlStorage).UpdateStats(t.Context(), shortUrl1)
+	(*urlStorage).UpdateStats(t.Context(), shortUrl3)
+	t.Run("Get top 2 with 0 offset", func(t *testing.T) {
+		toplinls, err := (*urlStorage).GetTopLinks(t.Context(), 2, 0)
+		assert.Equal(t, len(toplinls), 2)
+		assert.Equal(t, shortUrl2, toplinls[0].ShortUrl)
+		assert.Equal(t, shortUrl1, toplinls[1].ShortUrl)
+		assert.Nil(t, err)
+	})
+	t.Run("Get top 3 with 2 offset", func(t *testing.T) {
+		toplinls, err := (*urlStorage).GetTopLinks(t.Context(), 3, 2)
+		assert.Equal(t, len(toplinls), 1)
+		assert.Equal(t, shortUrl3, toplinls[0].ShortUrl)
+		assert.Nil(t, err)
+	})
 }
