@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/vankos/koroche/urlStorage"
@@ -117,6 +118,48 @@ func (controller *Controller) ProcessStats(ginContext *gin.Context) {
 	}
 
 	ginContext.JSON(http.StatusOK, stats)
+}
+
+// Get n top-clicked URLs with specified offsetrage.
+func (controller *Controller) ProcessTop(ginContext *gin.Context) {
+	topString := ginContext.Query("top")
+	offsetString := ginContext.Query("offset")
+	top, topErr := strconv.Atoi(topString)
+	offset, offsetErr := strconv.Atoi(offsetString)
+	if topErr != nil {
+		slog.Info("Unable to parse top parameter", "top", topString, "error", topErr)
+		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
+	}
+
+	if offsetErr != nil {
+		slog.Info("Unable to parse top parameter", "top", topString, "error", offsetErr)
+		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
+	}
+
+	if top <= 0 {
+		slog.Info("Top parameter must be greater than 0", "top", top)
+		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
+	}
+
+	if offset < 0 {
+		slog.Info("Top parameter must be 0 or greater", "offset", offset)
+		ginContext.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
+	}
+
+	ctx := ginContext.Request.Context()
+	topstats, ok := controller.urlStorage.GetTopLinks(ctx, top, offset)
+	if ok != nil {
+		slog.Info("Didnt found top links with this params", "top", top, "offset", offset, "error", ok)
+		ginContext.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	ginContext.JSON(http.StatusOK, topstats)
+
 }
 
 // CollectStats listens for short URLs on the statsChannel and updates their statistics in the URL storage.
