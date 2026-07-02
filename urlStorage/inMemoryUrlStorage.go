@@ -91,11 +91,21 @@ func (inMemoryStorage *InMemoryUrlStorage) GetTopLinks(ctx context.Context, urls
 		mapValues = append(mapValues, *value)
 	}
 	slices.SortFunc(mapValues, func(a, b LinkStats) int {
-		return cmp.Compare(a.ClickCount, b.ClickCount)
+		return cmp.Compare(b.ClickCount, a.ClickCount)
 	})
 
 	topDoamins := make([]LinkStats, 0, urlsToReturn)
-	for i := offset; i < offset+urlsToReturn; i++ {
+	mapValuesLen := len(mapValues)
+	if offset >= mapValuesLen {
+		return topDoamins, nil
+	}
+
+	maxValue := offset + urlsToReturn
+	if maxValue > mapValuesLen {
+		maxValue = mapValuesLen
+	}
+
+	for i := offset; i < maxValue; i++ {
 		topDoamins = append(topDoamins, mapValues[i])
 	}
 
