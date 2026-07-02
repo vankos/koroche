@@ -70,3 +70,30 @@ func ExampleUrlStorage_DeleteLinksOlderThan() {
 	fmt.Println(err != nil)
 	// Output: true
 }
+
+func ExampleUrlStorage_GetTopLinks() {
+	urlsStorage := urlStorage.NewInMemoryUrlStorage()
+	ctx := context.Background()
+	originalUrl1 := "https://www.example.com"
+	shortUrl1 := "abc"
+	originalUrl2 := "https://www.example1.com"
+	shortUrl2 := "abc111"
+	originalUrl3 := "https://www.example2.com"
+	shortUrl3 := "abc222"
+	urlsStorage.Store(ctx, originalUrl1, shortUrl1)
+	urlsStorage.Store(ctx, originalUrl2, shortUrl2)
+	urlsStorage.Store(ctx, originalUrl3, shortUrl3)
+	urlsStorage.UpdateStats(ctx, shortUrl2)
+	urlsStorage.UpdateStats(ctx, shortUrl2)
+	urlsStorage.UpdateStats(ctx, shortUrl2)
+	urlsStorage.UpdateStats(ctx, shortUrl1)
+	urlsStorage.UpdateStats(ctx, shortUrl1)
+	urlsStorage.UpdateStats(ctx, shortUrl3)
+	toplinls, _ := urlsStorage.GetTopLinks(ctx, 2, 1)
+	fmt.Println(len(toplinls) == 2)
+	fmt.Println(toplinls[0].ShortUrl)
+	fmt.Println(toplinls[1].ShortUrl)
+	// Output: true
+	// abc
+	// abc222
+}
