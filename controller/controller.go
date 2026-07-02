@@ -182,6 +182,7 @@ func SetupRouter(controller *Controller) *gin.Engine {
 	router.POST("/create", controller.ProcessCreate)
 	router.GET("/get", controller.ProcessGet)
 	router.GET("/stats", controller.ProcessStats)
+	router.GET("/top", controller.ProcessTop)
 	return router
 }
 
