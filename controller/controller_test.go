@@ -110,7 +110,7 @@ func TestStats(t *testing.T) {
 				assert.Equal(t, data.shortUrl, stats.ShortUrl)
 			}
 
-			IncrementStats(data, router)
+			IncrementStats(data.shortUrl, router)
 			assert.Equal(t, data.expectedCode, statsRecorder.Code)
 		})
 
@@ -141,12 +141,60 @@ func TestСreateCustomAlias(t *testing.T) {
 	}
 }
 
-func IncrementStats(data struct {
-	shortUrl     string
-	expectedCode int
-	expectString string
-}, router *gin.Engine) {
-	getRequest, _ := http.NewRequest("GET", "/get?url="+data.shortUrl, nil)
+func TestTop(t *testing.T) {
+	router := setUpRouter()
+	originalUrl1 := "https://www.google.com"
+	originalUrl2 := "https://www.google2.com"
+	request, _ := http.NewRequest("POST", "/create?url="+originalUrl1, nil)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	shortenUrl1 := recorder.Body.String()
+	request, _ = http.NewRequest("POST", "/create?url="+originalUrl2, nil)
+	router.ServeHTTP(recorder, request)
+	shortenUrl2 := recorder.Body.String()
+	IncrementStats(shortenUrl2, router)
+	IncrementStats(shortenUrl2, router)
+	IncrementStats(shortenUrl1, router)
+
+	t.Run("Top param is giberrish", func(t *testing.T) {
+		statsRequest, _ := http.NewRequest("GET", "/stats?top=giberrish&offset=1", nil)
+		statsRecorder := httptest.NewRecorder()
+		router.ServeHTTP(statsRecorder, statsRequest)
+		assert.Equal(t, http.StatusUnprocessableEntity, statsRecorder.Code)
+	})
+
+	t.Run("Offset param is giberrish", func(t *testing.T) {
+		statsRequest, _ := http.NewRequest("GET", "/top?top=1&offset=giberrish", nil)
+		statsRecorder := httptest.NewRecorder()
+		router.ServeHTTP(statsRecorder, statsRequest)
+		assert.Equal(t, http.StatusUnprocessableEntity, statsRecorder.Code)
+	})
+
+	t.Run("Top is 0", func(t *testing.T) {
+		statsRequest, _ := http.NewRequest("GET", "/top?top=0&offset=1", nil)
+		statsRecorder := httptest.NewRecorder()
+		router.ServeHTTP(statsRecorder, statsRequest)
+		assert.Equal(t, http.StatusUnprocessableEntity, statsRecorder.Code)
+	})
+
+	t.Run("Offset is -1", func(t *testing.T) {
+		statsRequest, _ := http.NewRequest("GET", "/top?top=2&offset=-1", nil)
+		statsRecorder := httptest.NewRecorder()
+		router.ServeHTTP(statsRecorder, statsRequest)
+		assert.Equal(t, http.StatusUnprocessableEntity, statsRecorder.Code)
+	})
+
+	t.Run("Test normal top", func(t *testing.T) {
+		statsRequest, _ := http.NewRequest("GET", "/top?top=1&offset=0", nil)
+		statsRecorder := httptest.NewRecorder()
+		router.ServeHTTP(statsRecorder, statsRequest)
+		assert.Equal(t, http.StatusOK, statsRecorder.Code)
+	})
+
+}
+
+func IncrementStats(shortUrl string, router *gin.Engine) {
+	getRequest, _ := http.NewRequest("GET", "/get?url="+shortUrl, nil)
 	getRecorder := httptest.NewRecorder()
 	router.ServeHTTP(getRecorder, getRequest)
 }
