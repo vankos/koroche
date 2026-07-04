@@ -1,0 +1,21 @@
+meta {
+  name: Top
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host}}/top?top=2&offset=0
+  body: none
+  auth: inherit
+}
+
+params:query {
+  top: 2
+  offset: 0
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
