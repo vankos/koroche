@@ -10,8 +10,8 @@ type LinkStats struct {
 	OriginalUrl string
 	// CreatedAt is the time when the short URL was created
 	CreatedAt time.Time
-	// LastAccesedAt is the time when the short URL was last accessed
-	LastAccesedAt *time.Time
+	// LastAccessedAt is the time when the short URL was last accessed
+	LastAccessedAt *time.Time
 	// ClickCount is the number of times the short URL has been accessed
 	ClickCount int
 }

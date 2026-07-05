@@ -81,7 +81,7 @@ func (postgreSqlUrlStorage *PostgreSqlUrlStorage) GetStats(ctx context.Context, 
 
 func ScanLinkStats(execResult pgx.Row) (LinkStats, error) {
 	var stats LinkStats
-	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LastAccesedAt, &stats.CreatedAt, &stats.ShortUrl)
+	err := execResult.Scan(&stats.ClickCount, &stats.OriginalUrl, &stats.LastAccessedAt, &stats.CreatedAt, &stats.ShortUrl)
 	return stats, err
 }
 

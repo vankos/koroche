@@ -106,7 +106,7 @@ func testGetStats(t *testing.T, urlStorage *UrlStorage) {
 		assert.Equal(t, urlToShorten, stats.OriginalUrl)
 		assert.Equal(t, 2, stats.ClickCount)
 		assert.NotNil(t, stats.CreatedAt)
-		assert.NotNil(t, stats.LastAccesedAt)
+		assert.NotNil(t, stats.LastAccessedAt)
 	})
 
 	t.Run("Not Existing url", func(t *testing.T) {
