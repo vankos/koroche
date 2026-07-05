@@ -25,8 +25,9 @@ func NewInMemoryUrlStorage() InMemoryUrlStorage {
 func (inMemoryStorage *InMemoryUrlStorage) Store(_ context.Context, urlToShorten string, shortUrl string) error {
 	now := time.Now()
 	inMemoryStorage.shortToRealMap[shortUrl] = &LinkStats{
-		ShortUrl:       shortUrl,
-		OriginalUrl:    urlToShorten,
+		UrlPair: UrlPair{
+			ShortUrl:    shortUrl,
+			OriginalUrl: urlToShorten},
 		CreatedAt:      now,
 		LastAccessedAt: &now,
 		ClickCount:     0}

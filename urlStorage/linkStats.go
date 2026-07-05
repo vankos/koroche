@@ -4,10 +4,7 @@ import "time"
 
 // LinkStats represents the statistics of a shortened URL
 type LinkStats struct {
-	// ShortUrl is the shortened URL
-	ShortUrl string `json:"short_url"`
-	// OriginalUrl is the original URL that was shortened
-	OriginalUrl string `json:"original_url"`
+	UrlPair
 	// CreatedAt is the time when the short URL was created
 	CreatedAt time.Time `json:"created_at"`
 	// LastAccessedAt is the time when the short URL was last accessed
