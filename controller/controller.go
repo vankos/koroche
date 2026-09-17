@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -189,7 +188,7 @@ func SetupRouter(controller *Controller) *gin.Engine {
 // Close gracefully shuts down the controller, ensuring that any resources used by the URL storage are properly released.
 func (controller *Controller) Close() error {
 	slog.Info("Closing controller")
-	closable, ok := controller.urlStorage.(io.Closer)
+	closable, ok := controller.urlStorage.(urlStorage.ClosableUrlStorage)
 	if ok {
 		closable.Close()
 	}
